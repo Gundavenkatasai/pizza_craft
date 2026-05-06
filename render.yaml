@@ -1,0 +1,56 @@
+services:
+  - type: web
+    name: pizza-craft-api
+    runtime: node
+    buildCommand: cd project/server && npm install
+    startCommand: cd project/server && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: MONGODB_URI
+        fromDatabase:
+          name: pizza-db
+          property: connectionString
+      - key: JWT_SECRET
+        sync: false
+      - key: FRONTEND_URL
+        value: https://pizza-craft-frontend.onrender.com
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+
+  - type: web
+    name: pizza-craft-frontend
+    runtime: node
+    buildCommand: cd project && npm install && npm run build
+    startCommand: cd project && npm run preview
+    envVars:
+      - key: VITE_API_URL
+        value: https://pizza-craft-api.onrender.com
+    routes:
+      - path: /
+        destination: /index.html
+      - path: /admin*
+        destination: /admin/index.html
+
+  - type: web
+    name: pizza-craft-admin
+    runtime: node
+    buildCommand: cd admin-dashboard && npm install && npm run build
+    startCommand: cd admin-dashboard && npm run preview
+    envVars:
+      - key: VITE_BACKEND_URL
+        value: https://pizza-craft-api.onrender.com
+    routes:
+      - path: /admin/*
+        destination: /admin/index.html
+
+databases:
+  - name: pizza-db
+    databaseName: pizza_craft
+    region: singapore
