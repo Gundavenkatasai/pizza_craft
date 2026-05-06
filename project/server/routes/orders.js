@@ -206,13 +206,42 @@ router.post('/', authenticateToken, async (req, res) => {
 
       // Emit real-time events
       try {
+        // Fetch pizza details for proper image display
+        const pizzaIds = pricedItems.map(it => it.pizza_id).filter(Boolean);
+        const Pizza = (await import('../models/Pizza.js')).default;
+        const pizzas = await Pizza.find({ _id: { $in: pizzaIds } }).select('_id name image').lean();
+        const pizzaMap = new Map(pizzas.map(p => [p._id.toString(), p]));
+
+        // Format order to match frontend structure
+        const formattedOrder = {
+          id: mongoOrder._id.toString(),
+          status: mongoOrder.status,
+          total: mongoOrder.total_amount,
+          created_at: mongoOrder.created_at,
+          estimated_delivery: mongoOrder.estimated_delivery_time,
+          delivery_address: mongoOrder.delivery_address || {},
+          order_items: pricedItems.map(it => {
+            const pizzaDetails = it.pizza_id ? pizzaMap.get(it.pizza_id.toString()) : null;
+            return {
+              quantity: it.quantity,
+              pizzas: { 
+                name: it.name, 
+                image: it.image || pizzaDetails?.image || 'https://via.placeholder.com/400x300?text=Pizza'
+              },
+              pizza_sizes: { name: it.size }
+            };
+          })
+        };
+
         const normalizedForSocket = {
           id: orderData.id,
           user_id: mongoOrder.user_id?.toString() || null,
           status: mongoOrder.status,
           estimated_delivery: orderData.estimatedDelivery
         };
-        emitNewOrder(req.io, mongoOrder.toObject ? mongoOrder.toObject() : mongoOrder, null);
+        
+        // Emit with formatted order structure
+        emitNewOrder(req.io, formattedOrder, null);
         emitOrderUpdate(req.io, normalizedForSocket);
       } catch (emitErr) {
         console.warn('⚠️ Socket emit failed (create):', emitErr.message);

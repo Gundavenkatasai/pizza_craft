@@ -1,9 +1,0 @@
-# Ignore source files but keep builds
-.env.local
-.env.*.local
-*.log
-.DS_Store
-
-# Keep these files (explicitly not ignored)
-# !project/dist
-# !admin-dashboard/dist

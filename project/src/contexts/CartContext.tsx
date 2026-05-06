@@ -168,9 +168,25 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     try {
       // Always use localStorage for now due to database connection issues
       console.log('Updating quantity for item:', id, 'to:', quantity);
+      
+      const SIZE_EXTRA: Record<string, number> = {
+        small: 75,
+        medium: 85,
+        large: 95,
+        xl: 100
+      };
+      const INGREDIENT_MODIFIER = 10;
+      
       const updatedItems = items.map(item => {
         if (item.id === id) {
-          const newTotalPrice = (item.pizza.basePrice * item.size.priceMultiplier) * quantity;
+          // Calculate unit price with the same formula as addItem
+          const sizeKey = (item.size.name || '').toLowerCase();
+          const sizeExtra = SIZE_EXTRA[sizeKey] ?? SIZE_EXTRA['medium'];
+          const computedUnitPrice = item.pizza.basePrice * item.size.priceMultiplier + (item.pizza.ingredients?.length || 0) * INGREDIENT_MODIFIER + sizeExtra;
+          const unitPrice = Math.round(computedUnitPrice * 100) / 100;
+          const newTotalPrice = Math.round(unitPrice * quantity * 100) / 100;
+          
+          console.log('Updated item price:', { unitPrice, quantity, newTotalPrice });
           return { ...item, quantity, totalPrice: newTotalPrice };
         }
         return item;

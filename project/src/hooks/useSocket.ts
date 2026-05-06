@@ -9,7 +9,10 @@ export const useSocket = () => {
   useEffect(() => {
     // Initialize socket connection
     if (!socketRef.current) {
-      socketRef.current = io(import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_URL || 'http://localhost:3001', {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      console.log('Initializing socket connection to:', backendUrl);
+      
+      socketRef.current = io(backendUrl, {
         autoConnect: true,
         reconnection: true,
         reconnectionAttempts: 5,
@@ -17,14 +20,16 @@ export const useSocket = () => {
       });
 
       socketRef.current.on('connect', () => {
-        console.log('Socket connected');
+        console.log('Socket connected:', socketRef.current?.id);
         
         if (user) {
+          console.log('Joining user room:', user.id);
           // Join user-specific room
           socketRef.current?.emit('join-user-room', user.id);
           
           // Join admin room if user is admin
           if (user.role === 'admin') {
+            console.log('Joining admin room');
             socketRef.current?.emit('join-admin-room');
           }
         }
@@ -33,6 +38,18 @@ export const useSocket = () => {
       socketRef.current.on('disconnect', () => {
         console.log('Socket disconnected');
       });
+
+      socketRef.current.on('connect_error', (error) => {
+        console.error('Socket connection error:', error);
+      });
+    } else if (user && socketRef.current.connected) {
+      // If socket already exists and is connected, join rooms
+      console.log('Socket already connected, joining user room:', user.id);
+      socketRef.current.emit('join-user-room', user.id);
+      
+      if (user.role === 'admin') {
+        socketRef.current.emit('join-admin-room');
+      }
     }
 
     return () => {

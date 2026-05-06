@@ -113,23 +113,65 @@ const Orders: React.FC = () => {
     );
   }, []);
 
+  const handleNewOrder = useCallback((newOrder: Order) => {
+    console.log('Received new-order event:', newOrder);
+    setOrders(prevOrders => {
+      // Check if order already exists to avoid duplicates
+      const exists = prevOrders.some(order => order.id === newOrder.id);
+      if (exists) {
+        console.log('Order already exists, skipping duplicate');
+        return prevOrders;
+      }
+      console.log('Adding new order to list');
+      // Add new order at the beginning of the list
+      return [newOrder, ...prevOrders];
+    });
+    toast.success('New order placed successfully!');
+  }, []);
+
   // Initial fetch when user changes
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
 
+  // Refetch when component mounts or becomes visible (handles navigation from checkout)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log('Page visible, refetching orders');
+        fetchOrders();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [fetchOrders]);
+
+  // Join user room when socket connects
+  useEffect(() => {
+    if (socket && user) {
+      console.log('Joining user room:', user.id);
+      socket.emit('join-user-room', user.id);
+    }
+  }, [socket, user]);
+
   // Socket listeners - stable handlers prevent re-subscribing
   useEffect(() => {
     if (!socket || !user) return;
 
+    console.log('Setting up socket listeners for orders');
+
     socket.on('order-status-changed', handleOrderStatusChange);
     socket.on('order-updated', handleOrderUpdate);
+    socket.on('new-order', handleNewOrder);
 
     return () => {
+      console.log('Cleaning up socket listeners');
       socket.off('order-status-changed', handleOrderStatusChange);
       socket.off('order-updated', handleOrderUpdate);
+      socket.off('new-order', handleNewOrder);
     };
-  }, [socket, user, handleOrderStatusChange, handleOrderUpdate]);
+  }, [socket, user, handleOrderStatusChange, handleOrderUpdate, handleNewOrder]);
 
   const getStatusColor = (status: string) => {
     const colors: { [key: string]: string } = {

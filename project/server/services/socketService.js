@@ -85,6 +85,10 @@ export const emitOrderUpdate = (io, order) => {
 export const emitNewOrder = (io, order, user) => {
   io.to('admin-room').emit('new-order', { order, user });
   io.to('kitchen').emit('new-kitchen-order', order);
+  // Emit to the user's personal room so they see the new order immediately
+  if (order.user_id) {
+    io.to(`user-${order.user_id}`).emit('new-order', order);
+  }
 };
 
 export const emitInventoryAlert = (io, item) => {

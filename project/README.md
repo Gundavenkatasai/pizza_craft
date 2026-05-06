@@ -1,49 +1,108 @@
-# 🍕 Pizza Delivery App - Full Stack Application
+# 🍕 PizzaCraft - Full Stack Pizza Delivery Platform
 
-A complete pizza delivery application with React frontend and Express.js backend, integrated with Supabase for authentication and data management.
+A modern, real-time pizza delivery application with React frontend, Express.js backend, MongoDB database, and Socket.IO for live updates.
+
+## ✨ Key Features
+
+### Customer Features
+
+- 🛒 **Browse Menu** - View all available pizzas with prices and descriptions
+- 🎨 **Customize Pizzas** - Select size (Small, Medium, Large, XL) and toppings
+- 🛍️ **Shopping Cart** - Add, remove, and modify items before checkout
+- 💳 **Razorpay Integration** - Secure online payment processing
+- 📦 **Order Tracking** - Real-time order status updates via Socket.IO
+- 🔐 **User Authentication** - Secure JWT-based login/registration
+- 📧 **Email Notifications** - Order confirmations and status updates
+- 🤖 **AI Chatbot** - Gemini-powered assistant for menu help and recommendations
+- 🌤️ **Smart Recommendations** - Weather and mood-based pizza suggestions
+
+### Admin Features
+
+- 📊 **Dashboard Analytics** - View orders, revenue, and customer metrics
+- 🔔 **Real-time Order Notifications** - Instant alerts for new orders
+- 📋 **Order Management** - Update order status and view details
+- 👥 **Customer Management** - View customer information and order history
+- 🔄 **Live Sync** - Socket.IO for real-time updates across all devices
+
+### Technical Highlights
+
+- ⚡ **Real-time Updates** - Socket.IO for instant order notifications
+- 🎯 **Size-based Pricing** - Dynamic pricing (₹75-100 per size)
+- 🔒 **Secret Protection** - Pre-commit hooks to prevent credential leaks
+- 🌐 **CORS Support** - Works on localhost and LAN IPs
+- 📱 **Responsive Design** - Tailwind CSS for mobile-first UI
+- 🚀 **Production Ready** - Vercel/Render deployment configurations
 
 ## 🚀 Quick Start
 
-### Run the Complete Application (Frontend + Backend)
-
-```bash
-npm start
-```
-
-This single command will:
-
-- Start the backend server on http://localhost:3001
-- Start the frontend development server on http://localhost:5173
-- Automatically open your browser to the application
-
-## 📋 Requirements
+### Prerequisites
 
 - Node.js (v18 or higher)
+- MongoDB Atlas account (or local MongoDB)
 - npm or yarn
-- Internet connection (for Supabase)
 
-## 🛠️ Installation & Setup
+### Installation
 
-1. **Clone and Install Dependencies**
+1. **Clone the repository**
 
    ```bash
-   git clone <your-repo-url>
-   cd pizza-delivery-app
+   git clone https://github.com/Gundavenkatasai/pizza.git
+   cd pizza
+   ```
+
+2. **Install dependencies**
+
+   ```bash
    npm install
-   npm run build:backend
+   cd project && npm install
+   cd ../admin-dashboard && npm install
+   cd ../project/server && npm install
    ```
 
-2. **Environment Configuration**
+3. **Configure environment variables**
 
-   The application is pre-configured with Supabase. Environment files are already set up:
+   Create `.env` files in:
 
-   - Frontend: `.env` (contains Supabase URL and keys)
-   - Backend: `server/.env` (contains server configuration)
+   - `project/server/.env` - Backend configuration
+   - `project/.env` - Frontend configuration
+   - `admin-dashboard/.env` - Admin dashboard configuration
 
-3. **Start the Application**
+   See `.env.example` files for required variables.
+
+4. **Create admin user**
+
    ```bash
-   npm start
+   cd project/server
+   node scripts/create-admin.js
    ```
+
+5. **Start the application**
+
+   ```bash
+   # From root directory
+   npm run dev
+
+   # Or start individually:
+   # Terminal 1 - Backend
+   cd project/server && node index.js
+
+   # Terminal 2 - Frontend
+   cd project && npm run dev
+
+   # Terminal 3 - Admin Dashboard
+   cd admin-dashboard && npm run dev
+   ```
+
+## 🌐 Access URLs
+
+- **Main Website**: http://localhost:5173
+- **Admin Dashboard**: http://localhost:5001
+- **Backend API**: http://localhost:3001
+
+## 🔑 Default Admin Credentials
+
+- **Email**: admin@pizzaapp.com
+- **Password**: admin123
 
 ## 🏗️ Project Structure
 
