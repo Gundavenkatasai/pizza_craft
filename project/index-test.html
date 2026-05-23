@@ -41,7 +41,7 @@
     <script>
         document.getElementById("pay-button").addEventListener("click", function() {
             var options = {
-                key: "rzp_test_ODQ3lf6JSSFi9z", 
+                key: orderData.key || "PUT_YOUR_VITE_RAZORPAY_KEY_ID_HERE", 
                 amount: "49900", 
                 currency: "INR",
                 name: "Pizza Delivery",

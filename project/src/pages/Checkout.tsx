@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { CreditCard, MapPin, Clock, User } from 'lucide-react';
 import { formatCurrency } from '../utils/currency';
 import { sharedOrderService } from '../services/sharedOrderService';
+import { apiRequest } from '../utils/api';
 // All Razorpay types are imported from global declaration in types/react.d.ts
 
 // All Razorpay interfaces are now defined in src/types/react.d.ts
@@ -23,9 +24,27 @@ interface CustomerInfo {
 const calculateDeliveryFee = () => 2.99;
 const calculateTax = (subtotal: number) => subtotal * 0.08;
 const calculateTotal = (subtotal: number, deliveryFee: number, tax: number) => subtotal + deliveryFee + tax;
-const DEFAULT_RAZORPAY_KEY = 'rzp_test_ODQ3lf6JSSFi9z';
 
-const getRazorpayKey = () => import.meta.env.VITE_RAZORPAY_KEY_ID?.trim() || DEFAULT_RAZORPAY_KEY;
+const resolveRazorpayKey = async () => {
+  const envKey = import.meta.env.VITE_RAZORPAY_KEY_ID?.trim();
+  if (envKey) {
+    return envKey;
+  }
+
+  try {
+    const response = await apiRequest('/api/payment/config', { method: 'GET' });
+    if (response.ok) {
+      const data = await response.json();
+      if (data?.keyId) {
+        return String(data.keyId).trim();
+      }
+    }
+  } catch (error) {
+    console.warn('Unable to load Razorpay key from backend config:', error);
+  }
+
+  return '';
+};
 
 const Checkout: React.FC<{}> = (): JSX.Element => {
   const { items, clearCart, total } = useCart();
@@ -78,7 +97,7 @@ const Checkout: React.FC<{}> = (): JSX.Element => {
         const script = document.createElement('script');
         script.src = 'https://checkout.razorpay.com/v1/checkout.js';
         script.async = true;
-        script.onload = () => initializeDirectRazorpayCheckout();
+        script.onload = () => { void initializeDirectRazorpayCheckout(); };
         script.onerror = () => {
           throw new Error('Failed to load Razorpay SDK');
         };
@@ -94,12 +113,19 @@ const Checkout: React.FC<{}> = (): JSX.Element => {
   };
 
 
-  const initializeDirectRazorpayCheckout = () => {
+  const initializeDirectRazorpayCheckout = async () => {
     // Generate a random order ID for development
     const mockOrderId = `order_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+    const key = await resolveRazorpayKey();
+
+    if (!key) {
+      alert('Razorpay is not configured. Set VITE_RAZORPAY_KEY_ID or RAZORPAY_KEY_ID on the deployed backend.');
+      setIsProcessing(false);
+      return;
+    }
     
     const options = {
-      key: getRazorpayKey(),
+      key,
       amount: Math.round(finalTotal * 100), // Amount in paise
       currency: 'INR',
       name: 'Pizza Delivery App',

@@ -61,9 +61,20 @@ interface CustomerInfo {
   specialInstructions: string;
 }
 
-const DEFAULT_RAZORPAY_KEY = 'rzp_test_ODQ3lf6JSSFi9z';
+const getRazorpayKey = async () => {
+  const envKey = import.meta.env.VITE_RAZORPAY_KEY_ID?.trim();
+  if (envKey) {
+    return envKey;
+  }
 
-const getRazorpayKey = () => import.meta.env.VITE_RAZORPAY_KEY_ID?.trim() || DEFAULT_RAZORPAY_KEY;
+  const response = await apiRequest('/payment/config', { method: 'GET' });
+  if (!response.ok) {
+    return '';
+  }
+
+  const data = await response.json();
+  return String(data?.keyId || '').trim();
+};
 
 const Checkout: React.FC = () => {
   const { items, clearCart, total } = useCart();
@@ -132,7 +143,7 @@ const Checkout: React.FC = () => {
       body: JSON.stringify({
         razorpay_order_id: paymentData.razorpay_order_id,
         razorpay_payment_id: paymentData.razorpay_payment_id,
-            key: getRazorpayKey(),
+        razorpay_signature: paymentData.razorpay_signature,
       })
     });
 
@@ -160,8 +171,13 @@ const Checkout: React.FC = () => {
       }
 
       // PRD Requirement: Configure Razorpay options
+      const key = await getRazorpayKey();
+      if (!key) {
+        throw new Error('Razorpay is not configured.');
+      }
+
       const options = {
-        key: getRazorpayKey(),
+        key,
         amount: orderData.amount,
         currency: orderData.currency,
         name: 'PizzaCraft India',

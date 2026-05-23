@@ -1,6 +1,8 @@
 // Razorpay client-side integration utility
 // Make sure <script src="https://checkout.razorpay.com/v1/checkout.js"></script> is included in your index.html
 
+import { API_CONFIG } from '../utils/api';
+
 // Define types for selected items
 interface SelectedItem {
     id?: string;
@@ -25,7 +27,26 @@ interface RazorpayPaymentParams {
     supabase: SupabaseClient;
 }
 
-const DEFAULT_RAZORPAY_KEY = 'rzp_test_ODQ3lf6JSSFi9z';
+const resolveRazorpayKey = async () => {
+    const envKey = import.meta.env.VITE_RAZORPAY_KEY_ID?.trim();
+    if (envKey) {
+        return envKey;
+    }
+
+    try {
+        const response = await fetch(`${API_CONFIG.BASE_URL}/api/payment/config`);
+        if (response.ok) {
+            const data = await response.json();
+            if (data?.keyId) {
+                return String(data.keyId).trim();
+            }
+        }
+    } catch (error) {
+        console.warn('Unable to load Razorpay key from backend config:', error);
+    }
+
+    return '';
+};
 
 export async function handleRazorpayPayment({ amount, user, selectedItems, supabase }: RazorpayPaymentParams) {
     return new Promise((resolve, reject) => {
@@ -33,7 +54,14 @@ export async function handleRazorpayPayment({ amount, user, selectedItems, supab
             alert('Razorpay script not loaded.');
             return reject(new Error('Razorpay script not loaded.'));
         }
-        const key = import.meta.env.VITE_RAZORPAY_KEY_ID?.trim() || DEFAULT_RAZORPAY_KEY;
+        void resolveRazorpayKey().then((key) => {
+        if (!key) {
+            const error = new Error('Razorpay is not configured.');
+            alert(error.message);
+            reject(error);
+            return;
+        }
+
         const options = {
             key,
             amount: amount * 100, // in paisa
@@ -72,5 +100,9 @@ export async function handleRazorpayPayment({ amount, user, selectedItems, supab
         };
         const rzp = new window.Razorpay(options);
         rzp.open();
+        }).catch((error) => {
+            alert('Failed to load Razorpay configuration.');
+            reject(error);
+        });
     });
 }
