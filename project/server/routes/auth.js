@@ -60,28 +60,6 @@ router.post('/register', async (req, res) => {
 
     console.log('User created successfully:', user.id);
 
-    // Send verification email (don't fail registration if email fails)
-    try {
-      await sendVerificationEmail(email, verificationToken);
-      console.log('Verification email sent');
-    } catch (emailError) {
-      console.error('Email sending error:', emailError);
-      // Don't fail registration if email fails
-    }
-
-    // Send welcome email (don't fail registration if email fails)
-    try {
-      await sendWelcomeEmail(email, {
-        firstName: firstName,
-        lastName: lastName,
-        email: email
-      });
-      console.log('Welcome email sent to:', email);
-    } catch (emailError) {
-      console.error('Welcome email sending error:', emailError);
-      // Don't fail registration if email fails
-    }
-
     // Generate JWT
     const token = jwt.sign(
       { userId: user._id.toString(), email: user.email, role: user.role },
@@ -102,6 +80,21 @@ router.post('/register', async (req, res) => {
         phone: user.phone,
         role: user.role,
         emailVerified: user.email_verified
+      }
+    });
+
+    void Promise.allSettled([
+      sendVerificationEmail(email, verificationToken),
+      sendWelcomeEmail(email, {
+        firstName,
+        lastName,
+        email
+      })
+    ]).then((results) => {
+      for (const result of results) {
+        if (result.status === 'rejected') {
+          console.error('Post-registration email sending error:', result.reason);
+        }
       }
     });
   } catch (error) {
