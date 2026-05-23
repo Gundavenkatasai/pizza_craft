@@ -163,27 +163,10 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Serve static files in production
-if (process.env.NODE_ENV === 'production') {
-  // Serve admin dashboard at /admin
-  const adminPath = path.join(__dirname, '../../admin-dashboard/dist');
-  app.use('/admin', express.static(adminPath));
-  
-  // Serve main frontend at root
-  const frontendPath = path.join(__dirname, '../dist');
-  app.use(express.static(frontendPath));
-  
-  // SPA fallback for admin routes
-  app.get('/admin/*', (req, res) => {
-    res.sendFile(path.join(adminPath, 'index.html'));
-  });
-  
-  // SPA fallback for main app (must be last)
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(frontendPath, 'index.html'));
-  });
-}
-
+// Root route
+app.get('/', (req, res) => {
+  res.send('PizzaCraft API Running');
+});
 // Error handling middleware
 app.use(errorHandler);
 
