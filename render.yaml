@@ -31,7 +31,7 @@ services:
     startCommand: cd project && npm run preview
     envVars:
       - key: VITE_API_URL
-        value: https://pizza-craft-api.onrender.com
+        value: https://pizza-craft-0aov.onrender.com
     routes:
       - path: /
         destination: /index.html
@@ -45,7 +45,7 @@ services:
     startCommand: cd admin-dashboard && npm run preview
     envVars:
       - key: VITE_BACKEND_URL
-        value: https://pizza-craft-api.onrender.com
+        value: https://pizza-craft-0aov.onrender.com
     routes:
       - path: /admin/*
         destination: /admin/index.html

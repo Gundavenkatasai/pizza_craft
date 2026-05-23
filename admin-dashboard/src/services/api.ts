@@ -1,4 +1,4 @@
-const BASE_URL = (import.meta as any)?.env?.VITE_BACKEND_URL || 'https://pizza-craft-api.onrender.com';
+const BASE_URL = (import.meta as any)?.env?.VITE_BACKEND_URL || 'https://pizza-craft-0aov.onrender.com';
 
 function authHeaders() {
   const token = localStorage.getItem('adminToken');

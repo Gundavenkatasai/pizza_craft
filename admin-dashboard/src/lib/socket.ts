@@ -4,7 +4,7 @@ let socket: Socket | null = null;
 
 export const getSocket = (): Socket => {
   if (!socket) {
-    const baseUrl = (import.meta as any)?.env?.VITE_BACKEND_URL || 'https://pizza-craft-api.onrender.com';
+    const baseUrl = (import.meta as any)?.env?.VITE_BACKEND_URL || 'https://pizza-craft-0aov.onrender.com';
     socket = io(baseUrl, {
       autoConnect: true,
       reconnection: true,

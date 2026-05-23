@@ -27,7 +27,7 @@ export class SharedOrderService {
       // ALSO SAVE TO DATABASE API
       try {
         console.log('🔄 Saving order to database API...');
-        const backendBase = (import.meta as any)?.env?.VITE_BACKEND_URL || (import.meta as any)?.env?.VITE_API_URL || 'https://pizza-craft-api.onrender.com';
+        const backendBase = (import.meta as any)?.env?.VITE_BACKEND_URL || (import.meta as any)?.env?.VITE_API_URL || 'https://pizza-craft-0aov.onrender.com';
         const backendUrl = `${backendBase.replace(/\/$/, '')}/api/orders`;
         const token = localStorage.getItem('token');
         const apiResponse = await fetch(backendUrl, {

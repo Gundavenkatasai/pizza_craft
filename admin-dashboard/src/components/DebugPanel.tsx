@@ -53,7 +53,7 @@ const DebugPanel: React.FC = () => {
   const testApi = async () => {
     console.log('Testing backend API connection...');
     try {
-      const response = await fetch('https://pizza-craft-api.onrender.com/api/health');
+      const response = await fetch('https://pizza-craft-0aov.onrender.com/api/health');
       if (response.ok) {
         alert('Backend API connection successful!');
       } else {

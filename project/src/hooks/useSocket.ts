@@ -9,7 +9,7 @@ export const useSocket = () => {
   useEffect(() => {
     // Initialize socket connection
     if (!socketRef.current) {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_URL || 'https://pizza-craft-api.onrender.com';
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_URL || 'https://pizza-craft-0aov.onrender.com';
       console.log('Initializing socket connection to:', backendUrl);
       
       socketRef.current = io(backendUrl, {

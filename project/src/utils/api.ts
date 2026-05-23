@@ -3,7 +3,7 @@
 const deriveBaseUrl = () => {
   const envUrl = (import.meta as any).env?.VITE_API_URL;
   if (envUrl) return envUrl.replace(/\/$/, '');
-  const fallbackUrl = (import.meta as any).env?.VITE_BACKEND_URL || 'https://pizza-craft-api.onrender.com';
+  const fallbackUrl = (import.meta as any).env?.VITE_BACKEND_URL || 'https://pizza-craft-0aov.onrender.com';
   return fallbackUrl.replace(/\/$/, '');
 };
 
