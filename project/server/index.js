@@ -41,6 +41,7 @@ const io = new Server(server, {
 
 // Simple CORS only
 app.use(cors({ origin: '*' }));
+app.options('*', cors());
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
