@@ -3,8 +3,8 @@
 const deriveBaseUrl = () => {
   const envUrl = (import.meta as any).env?.VITE_API_URL;
   if (envUrl) return envUrl.replace(/\/$/, '');
-  const host = window.location.hostname; // e.g., localhost or LAN IP
-  return `http://${host}:3001`;
+  const fallbackUrl = (import.meta as any).env?.VITE_BACKEND_URL || 'https://pizza-craft-api.onrender.com';
+  return fallbackUrl.replace(/\/$/, '');
 };
 
 export const API_CONFIG = {

@@ -54,7 +54,7 @@ const Register: React.FC = () => {
     try {
       // Backend health pre-check (single attempt, show status code)
       try {
-        const base = (import.meta as any).env?.VITE_API_URL || `http://${window.location.hostname}:3001`;
+        const base = (import.meta as any).env?.VITE_API_URL || (import.meta as any).env?.VITE_BACKEND_URL || 'https://pizza-craft-api.onrender.com';
         const health = await fetch(base + '/api/health', { cache: 'no-store' });
         if (!health.ok) {
           const status = health.status;

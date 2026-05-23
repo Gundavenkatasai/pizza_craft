@@ -3,8 +3,8 @@ import axios from 'axios';
 const dynamicHost = () => {
   const envUrl = (import.meta as any).env?.VITE_API_URL;
   if (envUrl) return envUrl.replace(/\/$/, '');
-  const host = window.location.hostname; // supports LAN IP
-  return `http://${host}:3001`;
+  const fallbackUrl = (import.meta as any).env?.VITE_BACKEND_URL || 'https://pizza-craft-api.onrender.com';
+  return fallbackUrl.replace(/\/$/, '');
 };
 
 const API_BASE_URL = dynamicHost();
