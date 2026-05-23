@@ -62,7 +62,6 @@ A modern, real-time pizza delivery application with React frontend, Express.js b
 3. **Configure environment variables**
 
    Create `.env` files in:
-
    - `project/server/.env` - Backend configuration
    - `project/.env` - Frontend configuration
    - `admin-dashboard/.env` - Admin dashboard configuration
@@ -101,7 +100,7 @@ A modern, real-time pizza delivery application with React frontend, Express.js b
 
 ## 🔑 Default Admin Credentials
 
-- **Email**: admin@pizzaapp.com
+- **Email**: admin@pizzacraft.com
 - **Password**: admin123
 
 ## 🏗️ Project Structure
@@ -231,7 +230,6 @@ RAZORPAY_KEY_SECRET=EI21xvagP5DUVcGEl1xtS8AK
    ```
 
 2. **Database Connection Issues**
-
    - Check Supabase configuration
    - Verify environment variables
    - Ensure internet connection

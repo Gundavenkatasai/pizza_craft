@@ -179,7 +179,6 @@ Keep API keys, database URIs, and credentials out of source control. Follow thes
 - Create a local `.env` file from `project/.env.example` and fill real values. Do NOT commit `.env`.
 
 - Ensure `.gitignore` contains the following (already added):
-
   - `.env`, `.env.*`, `node_modules/`, `.vscode/`, build folders
 
 - Use environment variables in code (already used in this project) via `process.env.<NAME>`.

@@ -36,7 +36,7 @@ async function createAdminUser() {
     await mongoose.connect(mongoUri);
     console.log('✅ Connected to MongoDB');
 
-    const adminEmail = 'admin@pizzaapp.com';
+    const adminEmail = 'admin@pizzacraft.com';
     const adminPassword = 'admin123';
 
     // Check if admin already exists

@@ -1,11 +1,13 @@
 # ⚡ 3-MINUTE DEPLOYMENT GUIDE FOR RENDER
 
 ## STEP 1: Login to Render (1 minute)
+
 1. Go to: https://dashboard.render.com
 2. Click **"GitHub"** button
 3. Authorize Render → Done! ✅
 
 ## STEP 2: Deploy Backend (1 minute)
+
 1. Click **"New +"** → **"Web Service"**
 2. Select: **pizza_craft**
 3. Copy-paste these settings:
@@ -21,6 +23,7 @@ Plan:            Free
 
 4. Click **"Advanced"** or scroll to **"Environment"**
 5. Add these variables:
+
 ```
 PORT                 = 3001
 NODE_ENV             = production
@@ -36,6 +39,7 @@ FRONTEND_URL         = https://pizza-craft-web.onrender.com,https://pizza-craft-
 8. Copy the URL shown (e.g., `https://pizza-craft-api.onrender.com`)
 
 ## STEP 3: Deploy Frontend (1 minute)
+
 1. Click **"New +"** → **"Web Service"**
 2. Select: **pizza_craft**
 3. Copy-paste these settings:
@@ -50,6 +54,7 @@ Plan:            Free
 ```
 
 4. Add these variables:
+
 ```
 VITE_API_URL  = https://pizza-craft-api.onrender.com
 NODE_ENV      = production
@@ -59,6 +64,7 @@ NODE_ENV      = production
 6. ⏳ Wait 3-5 minutes
 
 ## STEP 4: Deploy Admin (1 minute)
+
 1. Click **"New +"** → **"Web Service"**
 2. Select: **pizza_craft**
 3. Copy-paste these settings:
@@ -73,6 +79,7 @@ Plan:            Free
 ```
 
 4. Add these variables:
+
 ```
 VITE_BACKEND_URL  = https://pizza-craft-api.onrender.com
 NODE_ENV          = production
@@ -86,19 +93,22 @@ NODE_ENV          = production
 ## ✅ YOUR DEPLOYED LINKS
 
 After all 3 deploy:
+
 - **Main Website**: https://pizza-craft-web.onrender.com
-- **Admin Dashboard**: https://pizza-craft-admin.onrender.com  
+- **Admin Dashboard**: https://pizza-craft-admin.onrender.com
 - **Backend API**: https://pizza-craft-api.onrender.com
 
 ## 🔑 LOGIN CREDENTIALS
 
 **Admin Panel:**
+
 ```
 Email: admin@pizzacraft.com
 Password: admin123
 ```
 
 **Customer Website:**
+
 ```
 Any email (test@example.com)
 Any password (min 6 chars)

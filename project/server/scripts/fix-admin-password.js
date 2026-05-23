@@ -35,7 +35,7 @@ async function fixAdminPassword() {
     await mongoose.connect(mongoUri);
     console.log('✅ Connected to MongoDB');
 
-    const adminEmail = 'admin@pizzaapp.com';
+    const adminEmail = 'admin@pizzacraft.com';
     const adminPassword = 'admin123';
 
     // Find admin user
@@ -85,7 +85,7 @@ async function fixAdminPassword() {
     }
 
     console.log('\n🎉 Admin credentials:');
-    console.log('📧 Email: admin@pizzaapp.com');
+    console.log('📧 Email: admin@pizzacraft.com');
     console.log('🔑 Password: admin123');
     
   } catch (error) {

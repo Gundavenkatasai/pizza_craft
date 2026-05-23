@@ -25,7 +25,7 @@ async function checkAdmin() {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('✅ Connected to MongoDB');
 
-    const admin = await User.findOne({ email: 'admin@pizzaapp.com' }).lean();
+    const admin = await User.findOne({ email: 'admin@pizzacraft.com' }).lean();
     
     if (!admin) {
       console.log('❌ Admin user not found');

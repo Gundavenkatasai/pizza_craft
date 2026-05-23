@@ -14,12 +14,14 @@
 ## 📋 YOUR NEXT STEPS (15 minutes to deploy!)
 
 ### Step 1: Create Render Account (2 minutes)
+
 1. Go to https://render.com
 2. Click **"Sign up"** → Sign up with GitHub
 3. Authorize Render to access your GitHub
 4. **You're ready!**
 
 ### Step 2: Deploy Backend API (5 minutes)
+
 1. In Render dashboard, click **"New +"** → **"Web Service"**
 2. **Select repository**: pizza_craft
 3. **Name**: `pizza-craft-api`
@@ -41,6 +43,7 @@
 11. **Copy the URL** (you'll need it next)
 
 ### Step 3: Deploy Frontend (Main Website) (4 minutes)
+
 1. Click **"New +"** → **"Web Service"**
 2. **Select repository**: pizza_craft
 3. **Name**: `pizza-craft-web`
@@ -57,6 +60,7 @@
 10. **Wait 3-5 minutes** ⏳
 
 ### Step 4: Deploy Admin Dashboard (4 minutes)
+
 1. Click **"New +"** → **"Web Service"**
 2. **Select repository**: pizza_craft
 3. **Name**: `pizza-craft-admin`
@@ -77,15 +81,18 @@
 ## 🎯 After Deployment
 
 Your live URLs will be:
+
 - **Main Website**: https://pizza-craft-web.onrender.com
 - **Admin Dashboard**: https://pizza-craft-admin.onrender.com
 - **Backend API**: https://pizza-craft-api.onrender.com
 
 ### Test Login
+
 - **Admin Email**: admin@pizzacraft.com
 - **Admin Password**: admin123
 
 ### Test Signup
+
 - Any email (e.g., test@example.com)
 - Any password (min 6 characters)
 
@@ -94,6 +101,7 @@ Your live URLs will be:
 ## 🔧 If Something Goes Wrong
 
 **Check Render Logs:**
+
 1. Go to your service in Render
 2. Click **"Logs"** tab
 3. Look for error messages
@@ -104,6 +112,7 @@ Your live URLs will be:
    - ❌ 404 errors → Try different Start Command
 
 **Quick Fixes:**
+
 - Update environment variables → Service auto-redeploys
 - Change build/start command → Redeploy manually
 - Environment issues → Clear browser cache (Ctrl+Shift+Delete)

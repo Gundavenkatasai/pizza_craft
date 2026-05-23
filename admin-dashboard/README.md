@@ -82,7 +82,7 @@ The dashboard will be available at `http://localhost:5001`
 
 Default admin account:
 
-- **Email**: admin@pizzaapp.com
+- **Email**: admin@pizzacraft.com
 - **Password**: admin123
 
 > ⚠️ Change these credentials in production!

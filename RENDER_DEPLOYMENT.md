@@ -3,6 +3,7 @@
 ## Overview
 
 This guide covers deploying the PizzaCraft application to **Render** with:
+
 - **Backend API** on Render Web Service
 - **Frontend** on Render Static Site or Web Service
 - **MongoDB Atlas** for database
@@ -17,6 +18,7 @@ This guide covers deploying the PizzaCraft application to **Render** with:
 3. **MongoDB Atlas Connection String** - From your existing cluster
 
 Your MongoDB URI:
+
 ```
 mongodb+srv://venkatasaigunda82_db_user:Lakshmisai%40321@cluster0.tlknxch.mongodb.net/?appName=Cluster0
 ```
@@ -50,6 +52,7 @@ mongodb+srv://venkatasaigunda82_db_user:Lakshmisai%40321@cluster0.tlknxch.mongod
    - **Plan**: `Free` (optional: upgrade to paid for better performance)
 
 4. **Set Environment Variables** (Click "Add from File" or add manually)
+
    ```
    PORT=3001
    NODE_ENV=production
@@ -88,6 +91,7 @@ mongodb+srv://venkatasaigunda82_db_user:Lakshmisai%40321@cluster0.tlknxch.mongod
    - **Plan**: `Free`
 
 4. **Set Environment Variables**
+
    ```
    VITE_API_URL=https://pizza-craft-api.onrender.com
    NODE_ENV=production
@@ -119,6 +123,7 @@ mongodb+srv://venkatasaigunda82_db_user:Lakshmisai%40321@cluster0.tlknxch.mongod
    - **Plan**: `Free`
 
 4. **Set Environment Variables**
+
    ```
    VITE_BACKEND_URL=https://pizza-craft-api.onrender.com
    NODE_ENV=production
@@ -150,10 +155,12 @@ Since frontend URLs will change, update your backend environment:
 ## 🔑 Login Credentials
 
 ### Admin Dashboard
+
 - **Email**: `admin@pizzacraft.com`
 - **Password**: `admin123`
 
 ### Customer Website
+
 - **Email**: Any email (e.g., test@example.com)
 - **Password**: Any password (min 6 characters)
 
@@ -163,39 +170,44 @@ Since frontend URLs will change, update your backend environment:
 
 After all services are deployed:
 
-| Service | URL |
-|---------|-----|
-| **Main Website** | https://pizza-craft-web.onrender.com |
+| Service             | URL                                    |
+| ------------------- | -------------------------------------- |
+| **Main Website**    | https://pizza-craft-web.onrender.com   |
 | **Admin Dashboard** | https://pizza-craft-admin.onrender.com |
-| **Backend API** | https://pizza-craft-api.onrender.com |
+| **Backend API**     | https://pizza-craft-api.onrender.com   |
 
 ---
 
 ## 🔧 Troubleshooting
 
 ### Service won't deploy
+
 - Check **"Logs"** in Render dashboard
 - Ensure all environment variables are set
 - Verify `Root Directory` is correct
 
 ### CORS errors
+
 - Update `FRONTEND_URL` in backend environment variables
 - Wait 2-3 minutes for service to redeploy
 - Clear browser cache (Ctrl+Shift+Delete)
 
 ### 404 errors on refresh
+
 - Add custom headers for React Router:
   1. Go to service → **"Settings"**
   2. Scroll to **"Routes"** (if available)
   3. Set catch-all to serve `index.html`
 
 ### Database connection fails
+
 - Verify `MONGODB_URI` is correct
 - Check MongoDB Atlas IP whitelist includes Render IPs
   - Go to MongoDB Atlas → Network Access
   - Add `0.0.0.0/0` or Render's IP ranges
 
 ### Free tier limitations
+
 - Services go to sleep after 15 mins of inactivity
 - 400 hours/month runtime limit (shared)
 - Upgrade to paid plan for 24/7 uptime
@@ -220,12 +232,14 @@ git push origin main
 ## 💰 Cost Breakdown
 
 **Free Tier** (Recommended for testing):
+
 - Backend: FREE
-- Frontend: FREE  
+- Frontend: FREE
 - Admin: FREE
 - **Total**: $0/month
 
 **Starter Plan** (Recommended for production):
+
 - Each service: $7/month = $21/month total
 - Plus MongoDB Atlas (free tier: $0)
 - **Total**: ~$21/month
