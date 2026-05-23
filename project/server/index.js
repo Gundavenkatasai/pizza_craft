@@ -163,6 +163,21 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// DB TEST ROUTE
+app.get('/api/db-test', async (req, res) => {
+  try {
+    const mongoose = await import('mongoose');
+
+    res.json({
+      state: mongoose.default.connection.readyState
+    });
+  } catch (err) {
+    res.status(500).json({
+      error: err.message
+    });
+  }
+});
+
 // Root route
 app.get('/', (req, res) => {
   res.send('PizzaCraft API Running');
