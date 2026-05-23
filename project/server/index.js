@@ -32,47 +32,9 @@ dotenv.config();
 
 const app = express();
 const server = createServer(app);
-// CORS configuration with dynamic origin validation
-const allowedOrigins = (() => {
-  const env = process.env.FRONTEND_URL;
-  if (env) {
-    // Support comma-separated list
-    return env.split(',').map(s => s.trim());
-  }
-  return [
-    "http://localhost:5173", 
-    "http://localhost:5001",
-    "http://172.26.91.12:5173",  // LAN IP for local network access
-    "http://172.26.91.12:5001"
-  ];
-})();
-
-// Function to check if origin is allowed (supports LAN IPs dynamically)
-const isOriginAllowed = (origin) => {
-  if (!origin) return false;
-  
-  // Check exact matches
-  if (allowedOrigins.includes(origin)) return true;
-  
-  // Allow Vercel deployment URLs (*.vercel.app)
-  if (/^https:\/\/.*\.vercel\.app$/.test(origin)) return true;
-  
-  // Allow any local network IP (192.168.x.x, 10.x.x.x, 172.16-31.x.x) with ports 5173 or 5001
-  const lanPattern = /^https?:\/\/(192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2[0-9]|3[0-1])\.\d+\.\d+):(5173|5001|3001)$/;
-  if (lanPattern.test(origin)) return true;
-  
-  return false;
-};
-
 const io = new Server(server, {
   cors: {
-    origin: (origin, callback) => {
-      if (!origin || isOriginAllowed(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
+    origin: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     credentials: true
   }
@@ -84,48 +46,8 @@ app.use(helmet({
   contentSecurityPolicy: false
 }));
 
-// Ensure allowed origins always receive CORS headers, including OPTIONS preflight.
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (origin && isOriginAllowed(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Vary', 'Origin');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
-    if (req.method === 'OPTIONS') {
-      return res.sendStatus(204);
-    }
-  }
-
-  next();
-});
-
 app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin || isOriginAllowed(origin)) {
-      callback(null, true);
-    } else {
-      console.warn('⚠️ CORS blocked origin:', origin);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
-
-// Explicitly handle CORS preflight
-app.options('*', cors({
-  origin: (origin, callback) => {
-    if (!origin || isOriginAllowed(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: true,
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
@@ -231,7 +153,6 @@ if (!isVercel) {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`📱 Socket.IO server initialized`);
       console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`🔗 Frontend URL(s): ${allowedOrigins.join(', ')}`);
     });
   }).catch((error) => {
     console.error('❌ Database connection error:', error.message);
@@ -241,7 +162,6 @@ if (!isVercel) {
       console.log(`🚀 Server running on port ${PORT} (without database)`);
       console.log(`📱 Socket.IO server initialized`);
       console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`🔗 Frontend URL(s): ${allowedOrigins.join(', ')}`);
     });
   });
 }
