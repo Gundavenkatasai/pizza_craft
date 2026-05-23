@@ -25,6 +25,8 @@ import { errorHandler } from './middleware/errorHandler.js';
 // Import services
 import { initializeSocket } from './services/socketService.js';
 import { connectMongo, testConnection } from './config/database.js';
+import User from './models/User.js';
+import bcrypt from 'bcryptjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -138,6 +140,49 @@ const startServer = async () => {
   if (!connected) {
     console.error('❌ MongoDB connection failed. Server will not start until the database is available.');
     process.exit(1);
+  }
+
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@pizzacraft.com';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+  const hashedPassword = await bcrypt.hash(adminPassword, 10);
+
+  const existingAdmin = await User.findOne({ email: adminEmail });
+  if (!existingAdmin) {
+    await User.create({
+      first_name: 'Admin',
+      last_name: 'User',
+      email: adminEmail,
+      password_hash: hashedPassword,
+      phone: '1234567890',
+      role: 'admin',
+      email_verified: true
+    });
+    console.log(`✅ Seeded admin user: ${adminEmail}`);
+  } else {
+    const passwordMatches = await bcrypt.compare(adminPassword, existingAdmin.password_hash || '');
+    let needsUpdate = false;
+
+    if (existingAdmin.role !== 'admin') {
+      existingAdmin.role = 'admin';
+      needsUpdate = true;
+    }
+
+    if (!passwordMatches) {
+      existingAdmin.password_hash = hashedPassword;
+      needsUpdate = true;
+    }
+
+    if (!existingAdmin.email_verified) {
+      existingAdmin.email_verified = true;
+      needsUpdate = true;
+    }
+
+    if (needsUpdate) {
+      await existingAdmin.save();
+      console.log(`✅ Repaired admin user: ${adminEmail}`);
+    } else {
+      console.log(`✅ Admin user verified: ${adminEmail}`);
+    }
   }
 
   server.listen(PORT, () => {
