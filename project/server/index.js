@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
+import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -23,7 +24,7 @@ import { errorHandler } from './middleware/errorHandler.js';
 
 // Import services
 import { initializeSocket } from './services/socketService.js';
-import { testConnection } from './config/database.js';
+import { connectMongo, testConnection } from './config/database.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -88,6 +89,20 @@ initializeSocket(io);
 // Make io available to routes
 app.use((req, res, next) => {
   req.io = io;
+  next();
+});
+
+// Ensure MongoDB is connected before any API route runs.
+app.use('/api', async (req, res, next) => {
+  if (mongoose.connection.readyState === 1) {
+    return next();
+  }
+
+  const connected = await connectMongo();
+  if (!connected) {
+    return res.status(503).json({ error: 'Database unavailable' });
+  }
+
   next();
 });
 
