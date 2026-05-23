@@ -39,16 +39,21 @@ const io = new Server(server, {
   }
 });
 
-// Security middleware
-app.use(helmet({
-  crossOriginEmbedderPolicy: false,
-  contentSecurityPolicy: false
-}));
-
+// CORS first
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// Body parsing middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Security middleware
+app.use(helmet({
+  crossOriginEmbedderPolicy: false,
+  contentSecurityPolicy: false
 }));
 
 // Rate limiting (relaxed in development to prevent accidental 429s during HMR / double effects)
@@ -69,10 +74,6 @@ if (process.env.NODE_ENV === 'production') {
   });
   app.use(devLimiter);
 }
-
-// Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Initialize Socket.IO
 initializeSocket(io);
@@ -120,8 +121,6 @@ app.get('/api/db-test', async (req, res) => {
 app.get('/', (req, res) => {
   res.send('PizzaCraft API Running');
 });
-// Error handling middleware
-app.use(errorHandler);
 
 // 404 handler (only in development, production uses SPA fallback)
 if (process.env.NODE_ENV !== 'production') {
@@ -129,6 +128,9 @@ if (process.env.NODE_ENV !== 'production') {
     res.status(404).json({ error: 'Route not found' });
   });
 }
+
+// Error handling middleware (must be last)
+app.use(errorHandler);
 
 // Align default port with frontend expectations (frontend hardcodes 3001)
 const PORT = process.env.PORT || 3001;
