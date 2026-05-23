@@ -117,6 +117,20 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 3001;
 
-server.listen(PORT, () => {
-  console.log(`Server running on ${PORT}`);
+const startServer = async () => {
+  const connected = await testConnection();
+
+  if (!connected) {
+    console.error('❌ MongoDB connection failed. Server will not start until the database is available.');
+    process.exit(1);
+  }
+
+  server.listen(PORT, () => {
+    console.log(`Server running on ${PORT}`);
+  });
+};
+
+startServer().catch((error) => {
+  console.error('❌ Failed to start server:', error.message);
+  process.exit(1);
 });
