@@ -6,11 +6,12 @@ import { RazorpayResponse, RazorpayError } from '../types/react';
 const RazorpayTest: React.FC = () => {
   const [amount, setAmount] = useState(500);
   const [isLoading, setIsLoading] = useState(false);
+  const DEFAULT_RAZORPAY_KEY = 'rzp_test_ODQ3lf6JSSFi9z';
 
   // Dummy user and items for demo
   const user = { email: 'test@example.com' };
   const selectedItems = [{ name: 'Pizza', qty: 1, price: amount }];
-  const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID?.trim();
+  const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID?.trim() || DEFAULT_RAZORPAY_KEY;
 
   // Simplified script loading without timeout
   const loadScript = (src: string): Promise<boolean> => {
@@ -59,14 +60,6 @@ const RazorpayTest: React.FC = () => {
     }
     
     console.log('Razorpay is available for use');
-
-    if (!razorpayKey) {
-      const errorMsg = 'Missing Razorpay key. Set VITE_RAZORPAY_KEY_ID in your deployment environment.';
-      console.error(errorMsg);
-      toast.error(errorMsg);
-      setIsLoading(false);
-      return;
-    }
 
     // Configure Razorpay options
     const options = {

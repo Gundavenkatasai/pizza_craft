@@ -23,14 +23,9 @@ interface CustomerInfo {
 const calculateDeliveryFee = () => 2.99;
 const calculateTax = (subtotal: number) => subtotal * 0.08;
 const calculateTotal = (subtotal: number, deliveryFee: number, tax: number) => subtotal + deliveryFee + tax;
+const DEFAULT_RAZORPAY_KEY = 'rzp_test_ODQ3lf6JSSFi9z';
 
-const getRazorpayKey = () => {
-  const key = import.meta.env.VITE_RAZORPAY_KEY_ID?.trim();
-  if (!key) {
-    throw new Error('Missing Razorpay key. Set VITE_RAZORPAY_KEY_ID in your deployment environment.');
-  }
-  return key;
-};
+const getRazorpayKey = () => import.meta.env.VITE_RAZORPAY_KEY_ID?.trim() || DEFAULT_RAZORPAY_KEY;
 
 const Checkout: React.FC<{}> = (): JSX.Element => {
   const { items, clearCart, total } = useCart();

@@ -25,18 +25,15 @@ interface RazorpayPaymentParams {
     supabase: SupabaseClient;
 }
 
+const DEFAULT_RAZORPAY_KEY = 'rzp_test_ODQ3lf6JSSFi9z';
+
 export async function handleRazorpayPayment({ amount, user, selectedItems, supabase }: RazorpayPaymentParams) {
     return new Promise((resolve, reject) => {
         if (!window.Razorpay) {
             alert('Razorpay script not loaded.');
             return reject(new Error('Razorpay script not loaded.'));
         }
-        const key = import.meta.env.VITE_RAZORPAY_KEY_ID?.trim();
-        if (!key) {
-            const error = new Error('Missing Razorpay key. Set VITE_RAZORPAY_KEY_ID in your deployment environment.');
-            alert(error.message);
-            return reject(error);
-        }
+        const key = import.meta.env.VITE_RAZORPAY_KEY_ID?.trim() || DEFAULT_RAZORPAY_KEY;
         const options = {
             key,
             amount: amount * 100, // in paisa
