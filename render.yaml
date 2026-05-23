@@ -16,7 +16,7 @@ services:
       - key: JWT_SECRET
         sync: false
       - key: FRONTEND_URL
-        value: https://pizza-craft-frontend.onrender.com
+        value: https://pizza-craft-1zi3.vercel.app,https://pizza-craft-frontend.onrender.com
       - key: RAZORPAY_KEY_ID
         sync: false
       - key: RAZORPAY_KEY_SECRET
