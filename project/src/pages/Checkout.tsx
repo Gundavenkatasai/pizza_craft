@@ -24,6 +24,14 @@ const calculateDeliveryFee = () => 2.99;
 const calculateTax = (subtotal: number) => subtotal * 0.08;
 const calculateTotal = (subtotal: number, deliveryFee: number, tax: number) => subtotal + deliveryFee + tax;
 
+const getRazorpayKey = () => {
+  const key = import.meta.env.VITE_RAZORPAY_KEY_ID?.trim();
+  if (!key) {
+    throw new Error('Missing Razorpay key. Set VITE_RAZORPAY_KEY_ID in your deployment environment.');
+  }
+  return key;
+};
+
 const Checkout: React.FC<{}> = (): JSX.Element => {
   const { items, clearCart, total } = useCart();
   const { user } = useAuth();
@@ -96,7 +104,7 @@ const Checkout: React.FC<{}> = (): JSX.Element => {
     const mockOrderId = `order_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
     
     const options = {
-      key: 'rzp_test_ODQ3lf6JSSFi9z', // Test key
+      key: getRazorpayKey(),
       amount: Math.round(finalTotal * 100), // Amount in paise
       currency: 'INR',
       name: 'Pizza Delivery App',

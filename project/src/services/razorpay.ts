@@ -31,8 +31,14 @@ export async function handleRazorpayPayment({ amount, user, selectedItems, supab
             alert('Razorpay script not loaded.');
             return reject(new Error('Razorpay script not loaded.'));
         }
+        const key = import.meta.env.VITE_RAZORPAY_KEY_ID?.trim();
+        if (!key) {
+            const error = new Error('Missing Razorpay key. Set VITE_RAZORPAY_KEY_ID in your deployment environment.');
+            alert(error.message);
+            return reject(error);
+        }
         const options = {
-            key: 'rzp_test_ODQ3lf6JSSFi9z', // Replace with your test key
+            key,
             amount: amount * 100, // in paisa
             currency: 'INR',
             name: 'Pizza Delivery App',

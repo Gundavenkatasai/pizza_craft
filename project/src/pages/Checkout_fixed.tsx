@@ -112,6 +112,13 @@ const Checkout: React.FC = () => {
       } else if (response.status === 400) {
         throw new Error(errorData.error || 'Invalid payment request. Please check the amount.');
       } else {
+      const getRazorpayKey = () => {
+        const key = import.meta.env.VITE_RAZORPAY_KEY_ID?.trim();
+        if (!key) {
+          throw new Error('Missing Razorpay key. Set VITE_RAZORPAY_KEY_ID in your deployment environment.');
+        }
+        return key;
+      };
         throw new Error('Order could not be placed. Please try again.');
       }
     }
@@ -128,7 +135,7 @@ const Checkout: React.FC = () => {
       body: JSON.stringify({
         razorpay_order_id: paymentData.razorpay_order_id,
         razorpay_payment_id: paymentData.razorpay_payment_id,
-        razorpay_signature: paymentData.razorpay_signature
+            key: getRazorpayKey(),
       })
     });
 
@@ -157,7 +164,7 @@ const Checkout: React.FC = () => {
 
       // PRD Requirement: Configure Razorpay options
       const options = {
-        key: process.env.RAZORPAY_KEY_ID || 'rzp_test_ODQ3lf6JSSFi9z',
+        key: getRazorpayKey(),
         amount: orderData.amount,
         currency: orderData.currency,
         name: 'PizzaCraft India',
