@@ -32,19 +32,10 @@ dotenv.config();
 
 const app = express();
 const server = createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: '*',
-    methods: ['GET', 'POST']
-  }
-});
+const io = new Server(server);
 
-// CORS first
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// Simple CORS only
+app.use(cors({ origin: '*' }));
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
@@ -93,28 +84,11 @@ app.use('/api/inventory', inventoryRoutes);
 app.use('/api/migrate', migrateRoutes);
 app.use('/api/payment', paymentRoutes);
 
-// Health check endpoint
+// Health route
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
+  res.json({
+    status: 'OK'
   });
-});
-
-// DB TEST ROUTE
-app.get('/api/db-test', async (req, res) => {
-  try {
-    const mongoose = await import('mongoose');
-
-    res.json({
-      state: mongoose.default.connection.readyState
-    });
-  } catch (err) {
-    res.status(500).json({
-      error: err.message
-    });
-  }
 });
 
 // Root route
@@ -122,50 +96,11 @@ app.get('/', (req, res) => {
   res.send('PizzaCraft API Running');
 });
 
-// 404 handler (only in development, production uses SPA fallback)
-if (process.env.NODE_ENV !== 'production') {
-  app.use('*', (req, res) => {
-    res.status(404).json({ error: 'Route not found' });
-  });
-}
-
-// Error handling middleware (must be last)
+// Error handler
 app.use(errorHandler);
 
-// Align default port with frontend expectations (frontend hardcodes 3001)
 const PORT = process.env.PORT || 3001;
 
-// For Vercel serverless deployment, export the app
-// Check if running in Vercel environment
-const isVercel = process.env.VERCEL === '1' || process.env.NOW_REGION;
-
-if (!isVercel) {
-  // Local/traditional server mode
-  // Test database connection before starting server
-  testConnection().then((connected) => {
-    if (connected) {
-      console.log('✅ Database connected successfully');
-    } else {
-      console.log('⚠️ Database connection failed, but starting server anyway for development');
-    }
-    
-    server.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-      console.log(`📱 Socket.IO server initialized`);
-      console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-    });
-  }).catch((error) => {
-    console.error('❌ Database connection error:', error.message);
-    console.log('⚠️ Starting server anyway for development');
-    
-    server.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT} (without database)`);
-      console.log(`📱 Socket.IO server initialized`);
-      console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-    });
-  });
-}
-
-// Export for Vercel serverless
-export default app;
-export { io };
+server.listen(PORT, () => {
+  console.log(`Server running on ${PORT}`);
+});
