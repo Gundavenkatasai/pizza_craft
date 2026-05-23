@@ -122,8 +122,24 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Verify password
-    const isValidPassword = await bcrypt.compare(password, user.password_hash);
+    // Verify password against current or legacy stored fields
+    const storedPassword = user.password_hash || user.password;
+    if (!storedPassword) {
+      console.log('No stored password found for:', email);
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    let isValidPassword = false;
+    try {
+      isValidPassword = await bcrypt.compare(password, storedPassword);
+    } catch {
+      isValidPassword = password === storedPassword;
+    }
+
+    if (!isValidPassword && user.password) {
+      isValidPassword = password === user.password;
+    }
+
     if (!isValidPassword) {
       console.log('Invalid password for:', email);
       return res.status(401).json({ error: 'Invalid credentials' });
