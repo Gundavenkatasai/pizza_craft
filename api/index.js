@@ -30,22 +30,6 @@ dotenv.config();
 
 const app = express();
 
-// CORS configuration
-const allowedOrigins = (() => {
-  const env = process.env.FRONTEND_URL;
-  if (env) return env.split(',').map(s => s.trim());
-  return ["http://localhost:5173", "http://localhost:5001"];
-})();
-
-const isOriginAllowed = (origin) => {
-  if (!origin) return false;
-  if (allowedOrigins.includes(origin)) return true;
-  if (/^https:\/\/.*\.vercel\.app$/.test(origin)) return true;
-  const lanPattern = /^https?:\/\/(192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2[0-9]|3[0-1])\.\d+\.\d+):(5173|5001|3001)$/;
-  if (lanPattern.test(origin)) return true;
-  return false;
-};
-
 // Security middleware
 app.use(helmet({
   crossOriginEmbedderPolicy: false,
@@ -53,18 +37,12 @@ app.use(helmet({
 }));
 
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || isOriginAllowed(origin)) {
-      callback(null, true);
-    } else {
-      console.warn('⚠️ CORS blocked origin:', origin);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
+  origin: '*',
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
+app.options('*', cors());
 
 // Rate limiting
 if (process.env.NODE_ENV === 'production') {
