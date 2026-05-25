@@ -4,11 +4,10 @@ A full-stack pizza delivery platform with customer ordering website and admin da
 
 ## 🚀 Live Demo
 
-**Production URL**: `https://your-vercel-domain.vercel.app`
+**Production URL**: `https://pizza-craft-sepia.vercel.app/`
 
-- Main Website: `/`
-- Admin Dashboard: `/admin`
-- API: `/api/*`
+- Main Website: `https://pizza-craft-sepia.vercel.app/`
+- Admin Dashboard: `https://pizza-craft-1zi3.vercel.app/`
 
 ## ✨ Features
 
