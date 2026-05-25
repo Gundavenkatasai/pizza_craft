@@ -224,7 +224,8 @@ MIT License - feel free to use this project for your own purposes.
 ## 🙏 Acknowledgments
 
 - Built with React, Node.js, and MongoDB
-- Deployed on Vercel
+- Deployed frontend on Vercel
+- Deployed backend on Render
 - Payment integration by Razorpay
 
 ---
