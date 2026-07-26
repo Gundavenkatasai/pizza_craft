@@ -20,7 +20,7 @@
     "build:copy": "node scripts/copy-builds.js",
     "build": "npm run build:frontend && npm run build:admin && npm run build:superadmin && npm run build:server && npm run build:copy",
     "start": "node project/server/index.js",
-    "vercel-build": "npm run build"
+    "vercel-build": "npm run install:all && npm run build"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
