@@ -36,7 +36,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         </div>
         <h1 className="text-3xl font-bold mb-4 text-red-500">Access Restricted</h1>
         <p className="text-gray-400 mb-8 max-w-md">Your account ({user.email}) does not have Super Admin privileges required to view this dashboard.</p>
-        <a href="http://localhost:5173/" className="px-6 py-3 bg-zinc-800 text-white font-medium rounded-xl hover:bg-zinc-700 transition-all">
+        <a href="/" className="px-6 py-3 bg-zinc-800 text-white font-medium rounded-xl hover:bg-zinc-700 transition-all">
           Return to Standard Dashboard
         </a>
       </div>
@@ -94,7 +94,7 @@ function App() {
   return (
     <AuthProvider>
       <ToastProvider>
-        <Router>
+        <Router basename="/super-admin">
           <ThemeProvider>
             <AppContent />
           </ThemeProvider>
