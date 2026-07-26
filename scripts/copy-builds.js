@@ -51,6 +51,13 @@ const adminPublic = path.join(publicDir, 'admin');
 console.log('📁 Copying admin dashboard build...');
 copyDir(adminDist, adminPublic);
 
+// Copy super admin dashboard dist to public/super-admin
+const superAdminDist = path.join(rootDir, 'super-admin-dashboard', 'dist');
+const superAdminPublic = path.join(publicDir, 'super-admin');
+console.log('📁 Copying super admin dashboard build...');
+copyDir(superAdminDist, superAdminPublic);
+
 console.log('✅ Build outputs copied successfully!');
 console.log(`   Frontend: ${publicDir}`);
 console.log(`   Admin: ${adminPublic}`);
+console.log(`   Super Admin: ${superAdminPublic}`);

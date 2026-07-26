@@ -19,7 +19,15 @@
       "dest": "/admin/index.html"
     },
     {
-      "src": "/((?!api/|admin/|.*\\..*).*)",
+      "src": "/super-admin",
+      "dest": "/super-admin/index.html"
+    },
+    {
+      "src": "/super-admin/(.*)",
+      "dest": "/super-admin/index.html"
+    },
+    {
+      "src": "/((?!api/|admin/|super-admin/|.*\\..*).*)",
       "dest": "/index.html"
     }
   ]
