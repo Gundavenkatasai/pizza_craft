@@ -96,7 +96,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
           <div className="p-4 border-t" style={{ borderColor: 'var(--border)' }}>
             <div className="rounded-xl p-4 mb-4 pc-elevated">
               <div className="text-sm font-medium truncate pc-text">
-                {user?.first_name} {user?.last_name}
+                {user?.firstName} {user?.lastName}
               </div>
               <div className="text-xs capitalize mt-1 pc-text-muted">
                 {user?.role?.replace('_', ' ')}

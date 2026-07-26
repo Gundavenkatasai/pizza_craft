@@ -50,7 +50,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                 </div>
               </div>
               <div className="hidden md:block text-sm">
-                <p className="font-medium pc-text">{user?.first_name || 'Admin'}</p>
+                <p className="font-medium pc-text">{user?.firstName || 'Admin'}</p>
                 <p className="pc-text-muted text-xs capitalize">{user?.role?.replace('_', ' ')}</p>
               </div>
             </div>

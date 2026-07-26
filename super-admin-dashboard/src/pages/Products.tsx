@@ -5,7 +5,6 @@ import { Pizza, Plus, Search, Pencil, Trash2, X, ToggleLeft, ToggleRight, Star, 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '../components/Toast';
 
-const BASE_URL = (import.meta as any)?.env?.VITE_BACKEND_URL || 'http://localhost:3001';
 const MAIN_SITE = 'http://localhost:5173';
 
 // Resolve image: could be full URL, relative /products/..., or empty

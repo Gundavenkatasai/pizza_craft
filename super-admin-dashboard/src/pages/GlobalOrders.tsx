@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { apiGet, apiPatch } from '../services/api';
 import { AnimatedCard } from '../components/AnimatedCard';
 import { ShoppingBag, Search, Filter, RefreshCw } from 'lucide-react';

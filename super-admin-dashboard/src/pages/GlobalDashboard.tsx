@@ -4,7 +4,6 @@ import { apiGet } from '../services/api';
 import { AnimatedCard } from '../components/AnimatedCard';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Globe,
   DollarSign,
   Users,
   ShoppingBag,
