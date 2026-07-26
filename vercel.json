@@ -9,26 +9,18 @@
       }
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/admin",
-      "dest": "/admin/index.html"
+      "source": "/admin/(.*)",
+      "destination": "/admin/index.html"
     },
     {
-      "src": "/admin/(.*)",
-      "dest": "/admin/index.html"
+      "source": "/super-admin/(.*)",
+      "destination": "/super-admin/index.html"
     },
     {
-      "src": "/super-admin",
-      "dest": "/super-admin/index.html"
-    },
-    {
-      "src": "/super-admin/(.*)",
-      "dest": "/super-admin/index.html"
-    },
-    {
-      "src": "/((?!api/|admin/|super-admin/|.*\\..*).*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
