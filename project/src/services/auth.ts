@@ -25,11 +25,19 @@ export const authService = {
   },
 
   async login(email: string, password: string) {
-    const { data } = await authAPI.login({ email, password })
-    const { token, user } = data
-    localStorage.setItem('token', token)
-    localStorage.setItem('user', JSON.stringify(user))
-    return { user, token }
+    try {
+      const { data } = await authAPI.login({ email, password })
+      const { token, user } = data
+      localStorage.setItem('token', token)
+      localStorage.setItem('user', JSON.stringify(user))
+      return { user, token }
+    } catch (err: any) {
+      if (err?.response) {
+        const msg = err.response.data?.error || err.response.data?.message || 'Login failed'
+        throw new Error(msg)
+      }
+      throw new Error('Login failed. Please retry.')
+    }
   },
 
   async signOut() {

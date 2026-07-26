@@ -1,0 +1,227 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+@import "tailwindcss";
+
+/* ==========================================================================
+   PizzaCraft — Unified Design System
+   Dark/light mode via CSS custom properties on html.dark / html.light
+   ========================================================================== */
+
+/* ── Brand tokens (constant) ─────────────────────────────────────────────── */
+:root {
+  --primary        : #e85d04;
+  --primary-hover  : #d14e00;
+  --primary-glow   : rgba(232, 93, 4, 0.30);
+  --primary-subtle : rgba(232, 93, 4, 0.12);
+  --radius         : 0.875rem;
+}
+
+/* ── DARK theme (default) ────────────────────────────────────────────────── */
+:root, html.dark {
+  --bg             : #0c0c12;
+  --bg-surface     : #13131c;
+  --bg-elevated    : #1a1a26;
+  --bg-hover       : rgba(255,255,255,0.05);
+  --border         : rgba(255,255,255,0.08);
+  --border-strong  : rgba(255,255,255,0.14);
+  --text           : #f1f5f9;
+  --text-secondary : #94a3b8;
+  --text-muted     : #64748b;
+  --shadow         : 0 4px 24px rgba(0,0,0,0.45);
+  --shadow-lg      : 0 12px 48px rgba(0,0,0,0.55);
+  --scrollbar      : rgba(255,255,255,0.10);
+  --scrollbar-h    : rgba(255,255,255,0.20);
+  --overlay        : rgba(0,0,0,0.70);
+}
+
+/* ── LIGHT theme ─────────────────────────────────────────────────────────── */
+html.light {
+  --bg             : #f7f5f0;
+  --bg-surface     : #ffffff;
+  --bg-elevated    : #f1ede8;
+  --bg-hover       : rgba(0,0,0,0.04);
+  --border         : #e2ddd7;
+  --border-strong  : #ccc6be;
+  --text           : #1a1610;
+  --text-secondary : #5c5248;
+  --text-muted     : #9c9088;
+  --shadow         : 0 4px 24px rgba(0,0,0,0.08);
+  --shadow-lg      : 0 12px 48px rgba(0,0,0,0.14);
+  --scrollbar      : #d4cfc9;
+  --scrollbar-h    : #b8b3ad;
+  --overlay        : rgba(0,0,0,0.40);
+}
+
+/* ── Base reset ──────────────────────────────────────────────────────────── */
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color : var(--bg);
+    color            : var(--text);
+    font-family      : 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    margin: 0;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  #root { min-height: 100vh; width: 100%; }
+
+  /* Override Tailwind's hardcoded bg-white/gray/zinc with CSS vars */
+  .bg-white         { background-color: var(--bg-surface) !important; }
+  .bg-gray-50       { background-color: var(--bg) !important; }
+  .bg-gray-100      { background-color: var(--bg-elevated) !important; }
+  .bg-gray-200      { background-color: var(--bg-elevated) !important; }
+  .text-gray-900    { color: var(--text) !important; }
+  .text-gray-800    { color: var(--text) !important; }
+  .text-gray-700    { color: var(--text-secondary) !important; }
+  .text-gray-600    { color: var(--text-secondary) !important; }
+  .text-gray-500    { color: var(--text-muted) !important; }
+  .text-gray-400    { color: var(--text-muted) !important; }
+  .border-gray-200  { border-color: var(--border) !important; }
+  .border-gray-300  { border-color: var(--border-strong) !important; }
+  .divide-gray-200 > * + * { border-color: var(--border) !important; }
+  .shadow-lg        { box-shadow: var(--shadow-lg) !important; }
+  .shadow-md        { box-shadow: var(--shadow) !important; }
+
+  /* Zinc overrides (Super Admin) */
+  .bg-zinc-950      { background-color: var(--bg) !important; }
+  .bg-zinc-900      { background-color: var(--bg-surface) !important; }
+  .bg-zinc-800      { background-color: var(--bg-elevated) !important; }
+  .border-zinc-800  { border-color: var(--border) !important; }
+  .border-zinc-700  { border-color: var(--border-strong) !important; }
+  .text-white       { color: var(--text) !important; }
+
+  /* Inputs */
+  input, textarea, select {
+    background-color : var(--bg-elevated);
+    color            : var(--text);
+    border-color     : var(--border);
+    transition: background-color 0.3s ease, border-color 0.2s ease, color 0.3s ease;
+  }
+  input::placeholder, textarea::placeholder { color: var(--text-muted); }
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px var(--primary-subtle);
+  }
+}
+
+/* ── Utility classes ─────────────────────────────────────────────────────── */
+@layer utilities {
+  /* Surfaces */
+  .pc-surface  { background-color: var(--bg-surface); border: 1px solid var(--border); }
+  .pc-elevated { background-color: var(--bg-elevated); border: 1px solid var(--border); }
+
+  /* Glass */
+  .pc-glass {
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border);
+  }
+  html.light .pc-glass {
+    background: rgba(255,255,255,0.70);
+  }
+
+  /* Text */
+  .pc-text           { color: var(--text); }
+  .pc-text-secondary { color: var(--text-secondary); }
+  .pc-text-muted     { color: var(--text-muted); }
+
+  /* Gradient brand text */
+  .text-gradient {
+    background: linear-gradient(135deg, var(--primary), #fb8c00);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Primary button */
+  .pc-btn-primary {
+    background-color: var(--primary);
+    color: #fff;
+    font-weight: 700;
+    border-radius: var(--radius);
+    box-shadow: 0 0 20px var(--primary-glow);
+  }
+  .pc-btn-primary:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 0 32px var(--primary-glow);
+  }
+
+  /* Card */
+  .pc-card {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  /* Input */
+  .pc-input {
+    background-color: var(--bg-elevated);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: calc(var(--radius) - 0.125rem);
+  }
+  .pc-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-subtle);
+  }
+}
+
+/* ── Theme toggle button ─────────────────────────────────────────────────── */
+.theme-toggle {
+  display        : inline-flex;
+  align-items    : center;
+  justify-content: center;
+  width          : 2.1rem;
+  height         : 2.1rem;
+  border-radius  : 50%;
+  border         : 1px solid var(--border);
+  background     : var(--bg-elevated);
+  color          : var(--text-secondary);
+  cursor         : pointer;
+  transition     : background 0.25s ease, border-color 0.25s ease, color 0.2s ease, transform 0.25s ease;
+  flex-shrink    : 0;
+}
+.theme-toggle:hover {
+  background    : var(--primary-subtle);
+  border-color  : var(--primary);
+  color         : var(--primary);
+  transform     : rotate(18deg) scale(1.08);
+}
+.theme-toggle svg { transition: transform 0.3s ease; }
+
+/* ── Global transitions on theme swap ───────────────────────────────────── */
+*, *::before, *::after {
+  transition-property : background-color, border-color, color, fill, stroke;
+  transition-duration : 0.25s;
+  transition-timing-function: ease;
+}
+/* Exclude transitions from animations/motion */
+[data-framer-motion], .animate-spin, .animate-ping, .animate-pulse {
+  transition: none !important;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-h); }
+
+/* ── Animations ──────────────────────────────────────────────────────────── */
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in { animation: fadeSlideIn 0.3s ease forwards; }
+

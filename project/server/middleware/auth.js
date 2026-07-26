@@ -34,19 +34,56 @@ export const authenticateToken = async (req, res, next) => {
   }
 };
 
+export const authenticateOptional = async (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return next();
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret-key');
+    const user = await User.findById(decoded.userId).lean();
+    if (user) {
+      req.user = {
+        ...user,
+        id: user._id.toString()
+      };
+    }
+  } catch (error) {
+    // Ignore error for optional auth
+    console.log('Optional Auth: Invalid token ignored');
+  }
+  next();
+};
+
+export const requireRole = (roles) => {
+  return (req, res, next) => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      return res.status(403).json({ error: `Access denied. Requires one of: ${roles.join(', ')}` });
+    }
+    next();
+  };
+};
+
 export const requireAdmin = (req, res, next) => {
-  if (req.user?.role !== 'admin') {
+  if (!['admin', 'super_admin', 'restaurant_admin'].includes(req.user?.role)) {
     return res.status(403).json({ error: 'Admin access required' });
   }
   next();
 };
 
+export const requireSuperAdmin = (req, res, next) => {
+  if (req.user?.role !== 'super_admin') {
+    return res.status(403).json({ error: 'Super Admin access required' });
+  }
+  next();
+};
+
 export const requireStaff = (req, res, next) => {
-  console.log('🔒 requireStaff check - user role:', req.user?.role, 'full user:', { email: req.user?.email, role: req.user?.role });
-  if (!['admin', 'staff'].includes(req.user?.role)) {
-    console.log('❌ Access denied - role not admin/staff');
+  if (!['admin', 'super_admin', 'restaurant_admin', 'manager', 'kitchen_staff', 'delivery_staff', 'staff'].includes(req.user?.role)) {
     return res.status(403).json({ error: 'Staff access required' });
   }
-  console.log('✅ Staff access granted');
   next();
 };

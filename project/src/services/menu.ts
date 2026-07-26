@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase'
+import { menuAPI } from './api'
 import type { Pizza, PizzaSize } from '../types'
 
 export const menuService = {
@@ -8,49 +8,30 @@ export const menuService = {
     search?: string
   }) {
     try {
-      let query = supabase
-        .from('pizzas')
-        .select(`
-          *,
-          pizza_sizes (*)
-        `)
-
-      if (filters?.category) {
-        query = query.eq('category', filters.category)
-      }
-
-      if (filters?.available !== undefined) {
-        query = query.eq('available', filters.available)
-      }
-
-      if (filters?.search) {
-        query = query.or(`name.ilike.%${filters.search}%,description.ilike.%${filters.search}%`)
-      }
-
-      const { data, error } = await query.order('name')
-
-      if (error) throw error
-
-      return data?.map(pizza => ({
-        id: pizza.id,
+      // Use the Express backend API instead of direct Supabase connection
+      const response = await menuAPI.getPizzas(filters);
+      const data = response.data;
+      
+      return data?.map((pizza: any) => ({
+        id: pizza._id || pizza.id,
         name: pizza.name,
         description: pizza.description,
         image: pizza.image,
-        basePrice: Number(pizza.base_price),
+        basePrice: Number(pizza.base_price || pizza.basePrice),
         category: pizza.category,
         ingredients: pizza.ingredients || [],
         available: pizza.available ?? true,
         rating: Number(pizza.rating) || 0,
         reviewCount: pizza.review_count || 0,
-        sizes: pizza.pizza_sizes?.map((size: { id: string; name: string; diameter: string; price_multiplier: number }) => ({
-          id: size.id,
+        sizes: pizza.pizza_sizes?.map((size: any) => ({
+          id: size._id || size.id,
           name: size.name,
           diameter: size.diameter,
-          priceMultiplier: Number(size.price_multiplier),
+          priceMultiplier: Number(size.price_multiplier || size.priceMultiplier),
         })) || [],
-        createdAt: pizza.created_at,
-        updatedAt: pizza.updated_at,
-      })) as Pizza[]
+        createdAt: pizza.created_at || pizza.createdAt,
+        updatedAt: pizza.updated_at || pizza.updatedAt,
+      })) as Pizza[];
     } catch (error) {
       console.error('Get pizzas error:', error)
       throw error
@@ -59,49 +40,37 @@ export const menuService = {
 
   async getPizza(id: string) {
     try {
-      const { data, error } = await supabase
-        .from('pizzas')
-        .select(`
-          *,
-          pizza_sizes (*),
-          reviews (
-            *,
-            users (first_name, last_name)
-          )
-        `)
-        .eq('id', id)
-        .single()
-
-      if (error) throw error
+      const response = await menuAPI.getPizza(id);
+      const data = response.data;
 
       return {
-        id: data.id,
+        id: data._id || data.id,
         name: data.name,
         description: data.description,
         image: data.image,
-        basePrice: Number(data.base_price),
+        basePrice: Number(data.base_price || data.basePrice),
         category: data.category,
         ingredients: data.ingredients || [],
         available: data.available ?? true,
         rating: Number(data.rating) || 0,
         reviewCount: data.review_count || 0,
-        sizes: data.pizza_sizes?.map((size: { id: string; name: string; diameter: string; price_multiplier: number }) => ({
-          id: size.id,
+        sizes: data.pizza_sizes?.map((size: any) => ({
+          id: size._id || size.id,
           name: size.name,
           diameter: size.diameter,
-          priceMultiplier: Number(size.price_multiplier),
+          priceMultiplier: Number(size.price_multiplier || size.priceMultiplier),
         })) || [],
-        reviews: data.reviews?.map((review: { id: string; user_id: string; rating: number; comment: string; created_at: string; users?: { first_name?: string; last_name?: string } }) => ({
-          id: review.id,
+        reviews: data.reviews?.map((review: any) => ({
+          id: review._id || review.id,
           userId: review.user_id,
           userName: `${review.users?.first_name} ${review.users?.last_name}`,
           rating: review.rating,
           comment: review.comment,
-          createdAt: review.created_at,
+          createdAt: review.created_at || review.createdAt,
         })) || [],
-        createdAt: data.created_at,
-        updatedAt: data.updated_at,
-      } as Pizza
+        createdAt: data.created_at || data.createdAt,
+        updatedAt: data.updated_at || data.updatedAt,
+      } as Pizza;
     } catch (error) {
       console.error('Get pizza error:', error)
       throw error
@@ -110,21 +79,14 @@ export const menuService = {
 
   async getPizzaSizes() {
     try {
-      const { data, error } = await supabase
-        .from('pizza_sizes')
-        .select('*')
-        .order('price_multiplier')
-
-      if (error) throw error
-
-      return data?.map(size => ({
-        id: size.id,
-        pizzaId: size.pizza_id,
-        name: size.name,
-        diameter: size.diameter,
-        priceMultiplier: Number(size.price_multiplier),
-        createdAt: size.created_at,
-      })) as PizzaSize[]
+      // The old site fetched these from supabase. Now they are usually embedded inside the pizza doc.
+      // Returning default sizes for fallback if needed.
+      return [
+        { id: '1', pizzaId: '', name: 'small', diameter: '10"', priceMultiplier: 1, createdAt: new Date().toISOString() },
+        { id: '2', pizzaId: '', name: 'medium', diameter: '12"', priceMultiplier: 1.3, createdAt: new Date().toISOString() },
+        { id: '3', pizzaId: '', name: 'large', diameter: '14"', priceMultiplier: 1.6, createdAt: new Date().toISOString() },
+        { id: '4', pizzaId: '', name: 'xl', diameter: '16"', priceMultiplier: 2, createdAt: new Date().toISOString() }
+      ] as PizzaSize[];
     } catch (error) {
       console.error('Get pizza sizes error:', error)
       throw error
@@ -133,15 +95,8 @@ export const menuService = {
 
   async getCategories() {
     try {
-      const { data, error } = await supabase
-        .from('pizzas')
-        .select('category')
-        .order('category')
-
-      if (error) throw error
-
-      const categories = [...new Set(data?.map(item => item.category))]
-      return categories
+      const response = await menuAPI.getCategories();
+      return response.data || [];
     } catch (error) {
       console.error('Get categories error:', error)
       throw error

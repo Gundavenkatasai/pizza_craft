@@ -25,15 +25,20 @@ const OrderSchema = new mongoose.Schema(
     total_amount: { type: Number, required: true },
     status: { 
       type: String, 
-      enum: ['pending', 'confirmed', 'preparing', 'baking', 'out-for-delivery', 'delivered', 'cancelled'], 
+      enum: ['pending', 'confirmed', 'preparing', 'baking', 'ready', 'out-for-delivery', 'delivered', 'cancelled', 'refunded', 'rejected'], 
       default: 'pending' 
     },
-    payment_status: { type: String, enum: ['pending', 'completed', 'failed', 'refunded'], default: 'pending' },
+    payment_status: { type: String, enum: ['pending', 'completed', 'paid', 'failed', 'refunded'], default: 'pending' },
     payment_method: { type: String },
     delivery_address: { type: Object },
     special_instructions: { type: String },
     estimated_delivery_time: { type: Date },
-    items: { type: [OrderItemSchema], default: [] }
+    items: { type: [OrderItemSchema], default: [] },
+    timeline: [{
+      status: { type: String },
+      timestamp: { type: Date, default: Date.now },
+      note: { type: String }
+    }]
   },
   { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }
 );

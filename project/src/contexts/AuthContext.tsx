@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { authService } from '../services/auth';
 import type { User } from '../types';
 import toast from 'react-hot-toast';
+import { clearCartOnLogout } from './CartContext';
 
 interface AuthContextType {
   user: User | null;
@@ -63,12 +64,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
-      setLoading(true);
       const { user: signedInUser } = await authService.login(email, password);
       const profile = await authService.getCurrentUser();
       if (profile) {
         setUser(profile);
         toast.success(`Welcome back, ${profile.firstName}!`);
+        // Trigger cart reload for the newly logged-in user
+        localStorage.setItem('__cart_reload__', Date.now().toString());
+        localStorage.removeItem('__cart_reload__');
       }
     } catch (error: unknown) {
       console.error('Login error:', error);
@@ -88,7 +91,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     phone?: string;
   }) => {
     try {
-      setLoading(true);
       await authService.signUp(userData);
       toast.success('Registration successful! Please check your email to verify your account.');
     } catch (error: unknown) {
@@ -103,7 +105,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     try {
-      setLoading(true);
+      // Clear the cart BEFORE signing out so we still know the userId
+      clearCartOnLogout();
       await authService.signOut();
       setUser(null);
       toast.success('Logged out successfully');

@@ -252,10 +252,10 @@ const AdminOrders: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">
-                            {order.users.first_name} {order.users.last_name}
+                            {order.users ? `${order.users.first_name} ${order.users.last_name}` : 'Guest User'}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {order.users.email}
+                            {order.users ? order.users.email : 'No email provided'}
                           </div>
                         </div>
                       </td>
@@ -345,10 +345,12 @@ const AdminOrders: React.FC = () => {
                   <div>
                     <h4 className="font-medium text-gray-900">Customer Information</h4>
                     <p className="text-gray-600">
-                      {selectedOrder.users.first_name} {selectedOrder.users.last_name}
+                      {selectedOrder.users ? `${selectedOrder.users.first_name} ${selectedOrder.users.last_name}` : 'Guest User'}
                     </p>
-                    <p className="text-gray-600">{selectedOrder.users.email}</p>
-                    {selectedOrder.users.phone && (
+                    <p className="text-gray-600">
+                      {selectedOrder.users ? selectedOrder.users.email : 'No email provided'}
+                    </p>
+                    {selectedOrder.users?.phone && (
                       <p className="text-gray-600">{selectedOrder.users.phone}</p>
                     )}
                   </div>

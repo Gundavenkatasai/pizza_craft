@@ -17,6 +17,11 @@ import adminRoutes from './routes/admin.js';
 import inventoryRoutes from './routes/inventory.js';
 import migrateRoutes from './routes/migrate.js';
 import paymentRoutes from './routes/payment.js';
+import categoryRoutes from './routes/categories.js';
+import couponRoutes from './routes/coupons.js';
+import bannerRoutes from './routes/banners.js';
+import settingsRoutes from './routes/settings.js';
+import analyticsRoutes from './routes/analytics.js';
 
 // Import middleware
 import { authenticateToken } from './middleware/auth.js';
@@ -116,6 +121,11 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/migrate', migrateRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/coupons', couponRoutes);
+app.use('/api/banners', bannerRoutes);
+app.use('/api/settings', settingsRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // Health route
 app.get('/api/health', (req, res) => {

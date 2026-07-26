@@ -1,6 +1,6 @@
 // API Configuration for Pizza Delivery App
 // Derive backend base URL. Prefer explicit env, else adapt to current host for LAN access.
-const deriveBaseUrl = () => {
+export const deriveBaseUrl = () => {
   const envUrl = (import.meta as any).env?.VITE_API_URL;
   if (envUrl) return envUrl.replace(/\/$/, '');
   const fallbackUrl = (import.meta as any).env?.VITE_BACKEND_URL || 'https://pizza-craft-0aov.onrender.com';

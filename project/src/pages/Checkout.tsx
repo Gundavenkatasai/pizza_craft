@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { CreditCard, MapPin, Clock, User } from 'lucide-react';
 import { formatCurrency } from '../utils/currency';
 import { sharedOrderService } from '../services/sharedOrderService';
-import { apiRequest } from '../utils/api';
+import { apiRequest, deriveBaseUrl } from '../utils/api';
 // All Razorpay types are imported from global declaration in types/react.d.ts
 
 // All Razorpay interfaces are now defined in src/types/react.d.ts
@@ -21,10 +21,7 @@ interface CustomerInfo {
 }
 
 // Move these calculations outside the component for better organization
-const calculateDeliveryFee = () => 2.99;
-const calculateTax = (subtotal: number) => subtotal * 0.08;
-const calculateTotal = (subtotal: number, deliveryFee: number, tax: number) => subtotal + deliveryFee + tax;
-
+import { calculateDeliveryFee } from '../utils/currency';
 const resolveRazorpayKey = async () => {
   const envKey = import.meta.env.VITE_RAZORPAY_KEY_ID?.trim();
   if (envKey) {
@@ -62,9 +59,9 @@ const Checkout: React.FC<{}> = (): JSX.Element => {
   });
 
   // Calculate these values early so they're available throughout the component
-  const deliveryFee = calculateDeliveryFee();
-  const tax = calculateTax(total);
-  const finalTotal = calculateTotal(total, deliveryFee, tax);
+  const deliveryFee = calculateDeliveryFee(total);
+  const tax = total * 0.08;
+  const finalTotal = total + deliveryFee + tax;
 
   useEffect(() => {
     if (items.length === 0) {
@@ -114,125 +111,164 @@ const Checkout: React.FC<{}> = (): JSX.Element => {
 
 
   const initializeDirectRazorpayCheckout = async () => {
-    // Generate a random order ID for development
-    const mockOrderId = `order_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
-    const key = await resolveRazorpayKey();
-
-    if (!key) {
-      alert('Razorpay is not configured. Set VITE_RAZORPAY_KEY_ID or RAZORPAY_KEY_ID on the deployed backend.');
-      setIsProcessing(false);
-      return;
-    }
-    
-    const options = {
-      key,
-      amount: Math.round(finalTotal * 100), // Amount in paise
-      currency: 'INR',
-      name: 'Pizza Delivery App',
-      description: 'Pizza Order Payment',
-      // No order_id needed for direct checkout
-      handler: async function (response: any) {
-        try {
-          // Mock successful payment verification for development
-          console.log('Payment successful:', response);
-          
-          // Save order directly without verification
-          // This is for development only - in production you would verify on server
-          console.log("Payment successful with address:", customerInfo);
-          clearCart();
-          navigate('/orders', {
-            state: {
-              message: '🎉 Payment successful! Your order has been confirmed.',
-              paymentMethod: 'razorpay',
-              totalAmount: finalTotal,
-              paymentId: response.razorpay_payment_id || 'mock-payment-id',
-            },
-          });
-          
-          // Store order in local storage for development purposes
-          const orderData = {
-            id: mockOrderId,
-            user_id: user?.id || 'mock-user',
-            user_email: user?.email || customerInfo.email, // Add user email for filtering
-            status: 'confirmed',
-            tracking_status: 'Order Received',
-            total: finalTotal,
-            subtotal: total,
-            tax: tax,
-            delivery_fee: deliveryFee,
-            payment_method: 'razorpay',
-            payment_status: 'paid',
-            payment_id: response.razorpay_payment_id || 'mock-payment-id',
-            // Store the complete delivery address as entered by the user
-            delivery_address: {
-              street: customerInfo.address,
-              city: customerInfo.city,
-              state: 'N/A',  // Added a default value since this isn't in the form
-              zipCode: customerInfo.postalCode,
-              phone: customerInfo.phone || ''  // Added phone number
-            },
-            special_instructions: customerInfo.specialInstructions || '',
-            notes: customerInfo.specialInstructions || '',
-            estimated_delivery: new Date(Date.now() + 45 * 60 * 1000).toISOString(),
-            created_at: new Date().toISOString(),
-            // Format order items to match the OrderDetails expected format
-            order_items: items.map(item => ({
-              id: `item-${item.pizza.id}-${Date.now()}`,
-              pizza_id: item.pizza.id, // Include pizza_id for backend image lookup
-              quantity: item.quantity,
-              price: item.totalPrice / item.quantity,
-              pizzas: {
-                name: item.pizza.name,
-                image: item.pizza.image || '/api/placeholder/400/300'
-              },
-              pizza_sizes: {
-                name: item.size.name
-              }
-            }))
-          };
-          
-          // Store order using shared service for better sync (now saves to database too)
-          try {
-            const orderId = await sharedOrderService.saveOrder(orderData);
-            console.log('Order saved with ID:', orderId);
-          } catch (orderSaveError) {
-            console.error('Failed to save order:', orderSaveError);
-          }
-          
-        } catch (error) {
-          console.error('Order processing error:', error);
-          alert('Payment successful but failed to process order. Please contact support.');
-          setIsProcessing(false);
-        }
-      },
-      prefill: {
-        name: customerInfo.fullName,
-        email: customerInfo.email,
-        contact: customerInfo.phone
-      },
-      notes: {
-        address: customerInfo.address
-      },
-      theme: {
-        color: '#F37254'
-      },
-      modal: {
-        ondismiss: function () {
-          setIsProcessing(false);
-        }
+    try {
+      // 1. Fetch Razorpay key
+      const key = await resolveRazorpayKey();
+      if (!key) {
+        alert('Razorpay is not configured. Please set the API keys.');
+        setIsProcessing(false);
+        return;
       }
-    };
 
-    const rzp = new window.Razorpay(options);
-    
-    // Add error handling for payment failures
-    rzp.on('payment.failed', function(response: any) {
-      console.error('Payment failed:', response.error);
-      alert(`Payment failed: ${response.error.description}`);
+      // 2. Call backend to create Razorpay order
+      const token = localStorage.getItem('token');
+      const backendBase = deriveBaseUrl();
+      const createOrderRes = await fetch(`${backendBase}/api/payment/createOrder`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ amount: finalTotal, currency: 'INR' })
+      });
+
+      if (!createOrderRes.ok) {
+        const errorText = await createOrderRes.text();
+        throw new Error(`Failed to create order on server: ${errorText}`);
+      }
+
+      const orderDataBackend = await createOrderRes.json();
+
+      // 3. Configure Razorpay options
+      const options = {
+        key,
+        amount: orderDataBackend.amount,
+        currency: orderDataBackend.currency,
+        order_id: orderDataBackend.id, // Secure order ID from backend
+        name: 'Pizza Delivery App',
+        description: 'Pizza Order Payment',
+        handler: async function (response: any) {
+          try {
+            // 4. Verify payment on the backend
+            const backendBase = deriveBaseUrl();
+            const verifyRes = await fetch(`${backendBase}/api/payment/verifyOrder`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+              },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature
+              })
+            });
+
+            if (!verifyRes.ok) {
+              const verifyErr = await verifyRes.text();
+              throw new Error(`Payment verification failed: ${verifyErr}`);
+            }
+
+            console.log("Payment verified successfully with address:", customerInfo);
+            
+            // 5. Create Order Payload
+            const mockOrderId = `order_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+            const orderPayload = {
+              id: mockOrderId,
+              user_id: user?.id || 'mock-user',
+              user_email: user?.email || customerInfo.email,
+              status: 'confirmed',
+              tracking_status: 'Order Received',
+              total: finalTotal,
+              subtotal: total,
+              tax: tax,
+              delivery_fee: deliveryFee,
+              payment_method: 'razorpay',
+              payment_status: 'paid',
+              payment_id: response.razorpay_payment_id || 'mock-payment-id',
+              delivery_address: {
+                street: customerInfo.address,
+                city: customerInfo.city,
+                state: 'N/A',
+                zipCode: customerInfo.postalCode,
+                phone: customerInfo.phone || ''
+              },
+              special_instructions: customerInfo.specialInstructions || '',
+              notes: customerInfo.specialInstructions || '',
+              estimated_delivery: new Date(Date.now() + 45 * 60 * 1000).toISOString(),
+              created_at: new Date().toISOString(),
+              order_items: items.map(item => ({
+                id: `item-${item.pizza.id}-${Date.now()}`,
+                pizza_id: item.pizza.id,
+                quantity: item.quantity,
+                price: item.totalPrice / item.quantity,
+                pizzas: {
+                  name: item.pizza.name,
+                  image: item.pizza.image || '/api/placeholder/400/300'
+                },
+                pizza_sizes: {
+                  name: item.size.name
+                }
+              }))
+            };
+            
+            // 6. Save order
+            try {
+              const orderId = await sharedOrderService.saveOrder(orderPayload);
+              console.log('Order saved with ID:', orderId);
+              
+              clearCart();
+              navigate('/orders', {
+                state: {
+                  message: '🎉 Payment successful! Your order has been confirmed.',
+                  paymentMethod: 'razorpay',
+                  totalAmount: finalTotal,
+                  paymentId: response.razorpay_payment_id || 'mock-payment-id',
+                },
+              });
+            } catch (orderSaveError) {
+              console.error('Failed to save order:', orderSaveError);
+              throw new Error('Payment succeeded but we failed to save the order to the database. Please contact support immediately with your payment ID.');
+            }
+
+          } catch (error) {
+            console.error('Order processing error:', error);
+            alert('Payment successful but failed to verify/process order. Please contact support.');
+            setIsProcessing(false);
+          }
+        },
+        prefill: {
+          name: customerInfo.fullName,
+          email: customerInfo.email,
+          contact: customerInfo.phone
+        },
+        notes: {
+          address: customerInfo.address
+        },
+        theme: {
+          color: '#F37254'
+        },
+        modal: {
+          ondismiss: function () {
+            setIsProcessing(false);
+          }
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      
+      rzp.on('payment.failed', function(response: any) {
+        console.error('Payment failed:', response.error);
+        alert(`Payment failed: ${response.error.description}`);
+        setIsProcessing(false);
+      });
+      
+      rzp.open();
+    } catch (error) {
+      console.error('Razorpay initialization error:', error);
+      alert('Failed to initialize payment. Please try again.');
       setIsProcessing(false);
-    });
-    
-    rzp.open();
+    }
   };
 
   // Only using Razorpay payment method now

@@ -5,64 +5,10 @@ import User from '../models/User.js';
 import { authenticateToken, requireStaff } from '../middleware/auth.js';
 import { sendOrderConfirmationEmail, sendOrderStatusEmail } from '../services/emailService.js';
 import { emitNewOrder, emitOrderUpdate } from '../services/socketService.js';
+import { recalculateOrderTotals } from '../services/orderService.js';
 
 const router = express.Router();
 
-// Development endpoint for admin dashboard (no auth required)
-router.get('/dev/all', async (req, res) => {
-  try {
-    console.log('🔍 Development endpoint: Fetching all orders...');
-    
-    // For development, return orders from localStorage or a simple query
-    const { limit = 50 } = req.query;
-
-    try {
-      const orders = await Order.find({})
-        .sort({ created_at: -1 })
-        .limit(parseInt(limit))
-        .lean();
-      console.log('✅ Found', orders?.length || 0, 'orders in database');
-      res.json({ orders: orders || [], source: 'database' });
-    } catch (dbError) {
-      console.error('Database connection error:', dbError);
-      res.json({ orders: [], source: 'database_unavailable' });
-    }
-  } catch (error) {
-    console.error('Development endpoint error:', error);
-    res.status(500).json({ error: 'Failed to fetch orders', orders: [] });
-  }
-});
-
-// Development endpoint for updating order status (no auth required)
-router.patch('/dev/:orderId/status', async (req, res) => {
-  try {
-    const { orderId } = req.params;
-    const { status } = req.body;
-    
-    console.log('🔄 Development endpoint: Updating order status:', { orderId, status });
-
-    try {
-      const order = await Order.findByIdAndUpdate(
-        orderId,
-        { $set: { status } },
-        { new: true }
-      ).lean();
-
-      if (!order) {
-        return res.status(404).json({ error: 'Order not found' });
-      }
-
-      console.log('✅ Order status updated in database');
-      res.json({ success: true, order });
-    } catch (dbError) {
-      console.error('Database connection error:', dbError);
-      res.status(500).json({ error: 'Database unavailable' });
-    }
-  } catch (error) {
-    console.error('Development endpoint error:', error);
-    res.status(500).json({ error: 'Failed to update order status' });
-  }
-});
 
 // Create order (requires authentication)
 router.post('/', authenticateToken, async (req, res) => {
@@ -94,7 +40,7 @@ router.post('/', authenticateToken, async (req, res) => {
 
     // Generate unique order number
     const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
-    const userId = req.user?._id; // Must be authenticated user
+    const userId = req.user?._id || req.user?.id; // Must be authenticated user
 
     // Create order data
     const orderData = {
@@ -112,79 +58,8 @@ router.post('/', authenticateToken, async (req, res) => {
     };
 
     try {
-      // Normalize items (support nested structure from frontend local format)
-      const normalizedItems = (orderItems || []).map(it => {
-        // Local format: { quantity, price, pizzas: { name,... }, pizza_sizes: { name } }
-        if (it.pizzas && it.pizza_sizes) {
-          const unit = it.price || it.unit_price || 0;
-          const qty = it.quantity || 1;
-          return {
-            pizza_id: it.pizza_id && mongoose.Types.ObjectId.isValid(it.pizza_id) ? new mongoose.Types.ObjectId(it.pizza_id) : null,
-            name: it.pizzas.name,
-            image: it.pizzas.image || it.image || null,
-            size: it.pizza_sizes.name,
-            quantity: qty,
-            unit_price: unit,
-            total_price: it.total || it.total_price || unit * qty
-          };
-        }
-        // Flat format already
-        const unit = it.price || it.unit_price || 0;
-        const qty = it.quantity || 1;
-        return {
-          pizza_id: it.pizza_id && mongoose.Types.ObjectId.isValid(it.pizza_id) ? new mongoose.Types.ObjectId(it.pizza_id) : null,
-          name: it.name,
-          image: it.image || null,
-          size: it.size,
-          quantity: qty,
-          unit_price: unit,
-          total_price: it.total || it.total_price || unit * qty
-        };
-      });
-      // Compute proper unit/total pricing on the backend to avoid mismatches
-      // Replace previous hard floor with size-based additive pricing between 75 and 100
-      const SIZE_EXTRA = {
-        small: 75,
-        medium: 85,
-        large: 95,
-        xl: 100
-      };
-      const INGREDIENT_MODIFIER = 10; // per-ingredient additive modifier
-
-      // Gather pizza ids we can resolve
-      const pizzaIdsToFetch = normalizedItems.map(i => i.pizza_id).filter(Boolean);
-      const uniquePizzaIds = [...new Set(pizzaIdsToFetch.map(id => id.toString()))];
-      const Pizza = (await import('../models/Pizza.js')).default;
-      const pizzas = await Pizza.find({ _id: { $in: uniquePizzaIds } }).lean();
-      const pizzaMap = new Map(pizzas.map(p => [p._id.toString(), p]));
-
-      const pricedItems = normalizedItems.map(it => {
-        // If we have the pizza document, compute using base_price and size multiplier
-        if (it.pizza_id) {
-          const pizzaDoc = pizzaMap.get(it.pizza_id.toString());
-          if (pizzaDoc) {
-            const sizeObj = (pizzaDoc.pizza_sizes || []).find(s => s.name.toLowerCase() === (it.size || '').toLowerCase());
-            const multiplier = sizeObj?.price_multiplier || 1;
-            const ingredientCount = (pizzaDoc.ingredients || []).length || 0;
-            const sizeKey = (it.size || '').toLowerCase();
-            const sizeExtra = SIZE_EXTRA[sizeKey] ?? SIZE_EXTRA['medium'];
-            const computedUnit = pizzaDoc.base_price * multiplier + ingredientCount * INGREDIENT_MODIFIER + sizeExtra;
-            const unit_price = Math.round(computedUnit * 100) / 100;
-            const total_price = Math.round(unit_price * (it.quantity || 1) * 100) / 100;
-            return { ...it, unit_price, total_price };
-          }
-        }
-        // Fallback: use provided unit_price but apply a reasonable size extra if size provided
-        const fallbackUnit = typeof it.unit_price === 'number' ? it.unit_price : Number(it.unit_price) || 0;
-        const sizeKey = (it.size || '').toLowerCase();
-        const sizeExtra = SIZE_EXTRA[sizeKey] ?? 0;
-        const unit_price = Math.round((fallbackUnit + sizeExtra) * 100) / 100;
-        const total_price = Math.round(unit_price * (it.quantity || 1) * 100) / 100;
-        return { ...it, unit_price, total_price };
-      });
-
-      // Recompute total amount from priced items
-      const computedTotalAmount = pricedItems.reduce((s, it) => s + (it.total_price || 0), 0);
+      // Use centralized recalculation logic
+      const { totalAmount: computedTotalAmount, pricedItems } = await recalculateOrderTotals(orderItems);
 
       if (typeof totalAmount !== 'number' || isNaN(totalAmount)) {
         // If client didn't supply a number, accept computed one
@@ -200,7 +75,12 @@ router.post('/', authenticateToken, async (req, res) => {
         delivery_address: deliveryAddress,
         special_instructions: specialInstructions,
         estimated_delivery_time: new Date(orderData.estimatedDelivery),
-        items: pricedItems
+        items: pricedItems,
+        timeline: [{
+          status: orderData.status,
+          timestamp: new Date(),
+          note: 'Order placed by customer'
+        }]
       });
       orderData.id = mongoOrder._id.toString();
 
@@ -215,6 +95,7 @@ router.post('/', authenticateToken, async (req, res) => {
         // Format order to match frontend structure
         const formattedOrder = {
           id: mongoOrder._id.toString(),
+          user_id: userId,
           status: mongoOrder.status,
           total: mongoOrder.total_amount,
           created_at: mongoOrder.created_at,
@@ -230,7 +111,18 @@ router.post('/', authenticateToken, async (req, res) => {
               },
               pizza_sizes: { name: it.size }
             };
-          })
+          }),
+          users: {
+            first_name: req.user?.first_name || customerInfo?.firstName || 'Guest',
+            last_name: req.user?.last_name || customerInfo?.lastName || '',
+            email: req.user?.email || customerEmail || customerInfo?.email || '',
+            phone: req.user?.phone || customerInfo?.phone || ''
+          }
+        };
+
+        const socketUser = {
+          firstName: req.user?.first_name || customerInfo?.firstName || 'Guest',
+          lastName: req.user?.last_name || customerInfo?.lastName || ''
         };
 
         const normalizedForSocket = {
@@ -241,7 +133,7 @@ router.post('/', authenticateToken, async (req, res) => {
         };
         
         // Emit with formatted order structure
-        emitNewOrder(req.io, formattedOrder, null);
+        emitNewOrder(req.io, formattedOrder, socketUser);
         emitOrderUpdate(req.io, normalizedForSocket);
       } catch (emitErr) {
         console.warn('⚠️ Socket emit failed (create):', emitErr.message);
@@ -298,15 +190,18 @@ router.get('/admin', authenticateToken, requireStaff, async (req, res) => {
       id: o._id.toString(),
       user_id: o.user_id?._id?.toString() || null,
       status: o.status,
-      total_amount: o.total_amount,
+      total: o.total_amount,
       payment_method: o.payment_method,
       payment_status: o.payment_status,
       created_at: o.created_at,
       estimated_delivery: o.estimated_delivery_time,
-      items: o.items,
+      order_items: (o.items || []).map(it => ({
+        quantity: it.quantity,
+        pizzas: { name: it.name }
+      })),
       delivery_address: o.delivery_address,
       special_instructions: o.special_instructions,
-      user: o.user_id ? {
+      users: o.user_id ? {
         first_name: o.user_id.first_name,
         last_name: o.user_id.last_name,
         email: o.user_id.email,
@@ -380,7 +275,7 @@ router.patch('/:orderId/status', authenticateToken, requireStaff, async (req, re
     const { orderId } = req.params;
     const { status } = req.body;
 
-    const validStatuses = ['pending', 'confirmed', 'preparing', 'baking', 'out-for-delivery', 'delivered', 'cancelled'];
+    const validStatuses = ['pending', 'confirmed', 'preparing', 'baking', 'ready', 'out-for-delivery', 'delivered', 'cancelled', 'refunded', 'rejected'];
     
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ error: 'Invalid status' });
@@ -388,7 +283,16 @@ router.patch('/:orderId/status', authenticateToken, requireStaff, async (req, re
 
     const order = await Order.findByIdAndUpdate(
       orderId,
-      { $set: { status } },
+      { 
+        $set: { status },
+        $push: {
+          timeline: {
+            status,
+            timestamp: new Date(),
+            note: `Status updated to ${status}`
+          }
+        }
+      },
       { new: true }
     ).populate({ path: 'user_id', select: 'email first_name last_name' }).lean();
 

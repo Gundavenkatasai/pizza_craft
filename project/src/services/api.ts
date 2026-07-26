@@ -39,10 +39,12 @@ api.interceptors.response.use(
     console.error('API Error:', error.response?.data || error.message);
     
     if (error.response?.status === 401) {
-      // Clear auth data and redirect to login
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+      if (!error.config.url?.includes('/auth/login')) {
+        // Clear auth data and redirect to login
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
@@ -136,12 +138,12 @@ export const ordersAPI = {
 export const adminAPI = {
   getDashboard: () => api.get('/admin/dashboard'),
   
-  getOrders: (params?: {
-    page?: number;
-    limit?: number;
-    status?: string;
-    search?: string;
-  }) => api.get('/admin/orders', { params }),
+  getOrders: (params?: { 
+    page?: number, 
+    limit?: number, 
+    status?: string, 
+    search?: string 
+  }) => api.get('/orders/admin', { params }),
   
   getUsers: (params?: {
     page?: number;

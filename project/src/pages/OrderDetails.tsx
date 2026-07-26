@@ -4,6 +4,7 @@ import { ArrowLeft, Clock, MapPin, Phone, Package, CheckCircle } from 'lucide-re
 import useSocket from '../hooks/useSocket';
 import { apiRequest } from '../utils/api';
 import { formatCurrency } from '../utils/currency';
+import { getStatusColor, formatDate } from '../utils/formatters';
 import toast from 'react-hot-toast';
 
 interface OrderItem {
@@ -151,19 +152,7 @@ const OrderDetails: React.FC = () => {
     };
   }, [id, socket, fetchOrderDetails, handleOrderStatusChange, handleOrderUpdate]);
 
-  const getStatusColor = (status: string) => {
-    const colors: { [key: string]: string } = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      confirmed: 'bg-blue-100 text-blue-800',
-      preparing: 'bg-purple-100 text-purple-800',
-      baking: 'bg-orange-100 text-orange-800',
-      ready: 'bg-green-100 text-green-800',
-      'out-for-delivery': 'bg-indigo-100 text-indigo-800',
-      delivered: 'bg-green-100 text-green-800',
-      cancelled: 'bg-red-100 text-red-800'
-    };
-    return colors[status] || 'bg-gray-100 text-gray-800';
-  };
+  // Formatters are imported from utils/formatters.ts
 
   const getStatusSteps = () => {
     const steps = [
@@ -184,15 +173,7 @@ const OrderDetails: React.FC = () => {
     }));
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
+
 
   if (loading) {
     return (
@@ -296,6 +277,9 @@ const OrderDetails: React.FC = () => {
                       src={item.pizzas.image}
                       alt={item.pizzas.name}
                       className="w-16 h-16 object-cover rounded-lg"
+                      onError={(e) => {
+                        e.currentTarget.src = 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=200&q=80';
+                      }}
                     />
                     <div className="flex-1">
                       <h3 className="font-medium text-gray-900">{item.pizzas.name}</h3>

@@ -2,9 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Clock, MapPin, Eye, Package } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import EmptyState from '../components/ui/EmptyState';
 import useSocket from '../hooks/useSocket';
 import { apiRequest } from '../utils/api';
 import { formatCurrency } from '../utils/currency';
+import { getStatusColor, formatDate } from '../utils/formatters';
 import toast from 'react-hot-toast';
 
 interface Order {
@@ -173,29 +175,7 @@ const Orders: React.FC = () => {
     };
   }, [socket, user, handleOrderStatusChange, handleOrderUpdate, handleNewOrder]);
 
-  const getStatusColor = (status: string) => {
-    const colors: { [key: string]: string } = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      confirmed: 'bg-blue-100 text-blue-800',
-      preparing: 'bg-purple-100 text-purple-800',
-      baking: 'bg-orange-100 text-orange-800',
-      ready: 'bg-green-100 text-green-800',
-      'out-for-delivery': 'bg-indigo-100 text-indigo-800',
-      delivered: 'bg-green-100 text-green-800',
-      cancelled: 'bg-red-100 text-red-800'
-    };
-    return colors[status] || 'bg-gray-100 text-gray-800';
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
+  // Formatters are imported from utils/formatters.ts
 
   if (loading) {
     return (
@@ -231,24 +211,16 @@ const Orders: React.FC = () => {
         </div>
 
         {orders.length === 0 ? (
-          <div className="text-center py-12">
-            <Package className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-              {filter === 'all' ? 'No orders yet' : `No ${filter.replace('-', ' ')} orders`}
-            </h2>
-            <p className="text-gray-600 mb-6">
-              {filter === 'all'
-                ? "You haven't placed any orders yet. Start with our delicious menu!"
-                : `You don't have any ${filter.replace('-', ' ')} orders.`
-              }
-            </p>
-            <Link
-              to="/menu"
-              className="inline-block bg-primary-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-600 transition-colors"
-            >
-              Browse Menu
-            </Link>
-          </div>
+          <EmptyState
+            icon={Package}
+            title={filter === 'all' ? 'No orders yet' : `No ${filter.replace('-', ' ')} orders`}
+            description={filter === 'all'
+              ? "You haven't placed any orders yet. Start with our delicious menu!"
+              : `You don't have any ${filter.replace('-', ' ')} orders.`
+            }
+            buttonText="Browse Menu"
+            buttonLink="/menu"
+          />
         ) : (
           <div className="space-y-6">
             {orders

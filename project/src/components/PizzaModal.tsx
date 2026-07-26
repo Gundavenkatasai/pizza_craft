@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, Star, Minus, Plus } from 'lucide-react';
 import { Pizza, PizzaSize } from '../types';
 import { useCart } from '../contexts/CartContext';
-import { formatCurrency } from '../utils/currency';
+import { formatCurrency, calculatePizzaPrice } from '../utils/currency';
 
 interface PizzaModalProps {
   pizza: Pizza;
@@ -11,23 +11,22 @@ interface PizzaModalProps {
 
 const PizzaModal: React.FC<PizzaModalProps> = ({ pizza, onClose }) => {
   const { addItem } = useCart();
-  const [selectedSize, setSelectedSize] = useState<PizzaSize>(pizza.sizes[1]); // Default to medium
+  const [selectedSize, setSelectedSize] = useState<PizzaSize>(
+    pizza.sizes?.[1] || pizza.sizes?.[0] || { name: 'Regular', priceMultiplier: 1 }
+  );
   const [quantity, setQuantity] = useState(1);
 
-  const SIZE_EXTRA: Record<string, number> = {
-    small: 75,
-    medium: 85,
-    large: 95,
-    xl: 100
-  };
-  const INGREDIENT_MODIFIER = 10;
+  const isPizza = pizza.category?.toLowerCase() === 'pizzas' || pizza.category?.toLowerCase() === 'vegetarian' || pizza.category?.toLowerCase() === 'meat';
 
   const computeUnitPrice = (p: Pizza, size: PizzaSize) => {
-    const base = p.basePrice * size.priceMultiplier;
+    const baseMultiplier = size?.priceMultiplier || 1;
+    const base = p.basePrice * baseMultiplier;
+    
+    if (!isPizza) return Math.round(base * 100) / 100;
+    
+    const sizeKey = (size?.name || '').toLowerCase();
     const ingredientCount = (p.ingredients || []).length || 0;
-    const sizeKey = (size.name || '').toLowerCase();
-    const sizeExtra = SIZE_EXTRA[sizeKey] ?? SIZE_EXTRA['medium'];
-    const computed = base + ingredientCount * INGREDIENT_MODIFIER + sizeExtra;
+    const computed = calculatePizzaPrice(base, ingredientCount, sizeKey);
     return Math.round(computed * 100) / 100;
   };
 
@@ -47,6 +46,9 @@ const PizzaModal: React.FC<PizzaModalProps> = ({ pizza, onClose }) => {
             src={pizza.image}
             alt={pizza.name}
             className="w-full h-64 object-cover rounded-t-xl"
+            onError={(e) => {
+              e.currentTarget.src = 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=1000&q=80';
+            }}
           />
           <button
             onClick={onClose}
@@ -82,42 +84,46 @@ const PizzaModal: React.FC<PizzaModalProps> = ({ pizza, onClose }) => {
 
           <p className="text-gray-600 mb-6">{pizza.description}</p>
 
-          <div className="mb-6">
-            <h3 className="font-semibold text-gray-900 mb-3">Ingredients</h3>
-            <div className="flex flex-wrap gap-2">
-              {pizza.ingredients.map((ingredient, index) => (
-                <span
-                  key={index}
-                  className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm"
-                >
-                  {ingredient}
-                </span>
-              ))}
+          {pizza.ingredients && pizza.ingredients.length > 0 && (
+            <div className="mb-6">
+              <h3 className="font-semibold text-gray-900 mb-3">Ingredients</h3>
+              <div className="flex flex-wrap gap-2">
+                {pizza.ingredients.map((ingredient, index) => (
+                  <span
+                    key={index}
+                    className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm"
+                  >
+                    {ingredient}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
-          <div className="mb-6">
-            <h3 className="font-semibold text-gray-900 mb-3">Choose Size</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {pizza.sizes.map((size) => (
-                <button
-                  key={size.name}
-                  onClick={() => setSelectedSize(size)}
-                  className={`p-3 border rounded-lg text-center transition-all ${
-                    selectedSize.name === size.name
-                      ? 'border-primary-500 bg-primary-50 text-primary-700'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="font-medium capitalize">{size.name}</div>
-                  <div className="text-sm text-gray-500">{size.diameter}</div>
-                  <div className="font-semibold text-primary-600">
-                    {formatCurrency(computeUnitPrice(pizza, size))}
-                  </div>
-                </button>
-              ))}
+          {pizza.sizes && pizza.sizes.length > 0 && (
+            <div className="mb-6">
+              <h3 className="font-semibold text-gray-900 mb-3">Choose Size</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {pizza.sizes.map((size) => (
+                  <button
+                    key={size.name}
+                    onClick={() => setSelectedSize(size)}
+                    className={`p-3 border rounded-lg text-center transition-all ${
+                      selectedSize.name === size.name
+                        ? 'border-primary-500 bg-primary-50 text-primary-700'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="font-medium capitalize">{size.name}</div>
+                    <div className="text-sm text-gray-500">{size.diameter}</div>
+                    <div className="font-semibold text-primary-600">
+                      {formatCurrency(computeUnitPrice(pizza, size))}
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">

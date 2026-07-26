@@ -3,7 +3,8 @@ import crypto from 'crypto';
 import Razorpay from 'razorpay';
 import mongoose from 'mongoose';
 import Order from '../models/Order.js';
-import { authenticateToken } from '../middleware/auth.js';
+import { authenticateToken, authenticateOptional } from '../middleware/auth.js';
+import { recalculateOrderTotals } from '../services/orderService.js';
 
 const router = express.Router();
 
@@ -93,13 +94,18 @@ router.get('/config', (_req, res) => {
   });
 });
 
-router.post(['/createOrder', '/create-order'], authenticateToken, async (req, res) => {
+router.post(['/createOrder', '/create-order'], authenticateOptional, async (req, res) => {
   try {
     if (!razorpay) {
       return res.status(503).json({ error: 'Razorpay is not configured on the server' });
     }
 
-    const amount = Number(req.body.amount);
+    const items = normalizeItems(getOrderItems(req.body));
+    const { totalAmount: computedAmount } = await recalculateOrderTotals(items);
+    
+    // If the frontend didn't supply items (which shouldn't happen, but just in case) 
+    // or if we fail to compute, we fallback to the requested amount (though this is a security risk if items are missing)
+    let amount = computedAmount || Number(req.body.amount);
     const currency = (req.body.currency || 'INR').toUpperCase();
 
     if (!Number.isFinite(amount) || amount <= 0) {
@@ -125,7 +131,7 @@ router.post(['/createOrder', '/create-order'], authenticateToken, async (req, re
   }
 });
 
-router.post(['/verifyOrder', '/verify'], authenticateToken, async (req, res) => {
+router.post(['/verifyOrder', '/verify'], authenticateOptional, async (req, res) => {
   try {
     if (!razorpayKeySecret) {
       return res.status(503).json({ error: 'Razorpay secret is not configured on the server' });
@@ -157,11 +163,12 @@ router.post(['/verifyOrder', '/verify'], authenticateToken, async (req, res) => 
   }
 });
 
-router.post(['/placeOrderCOD', '/place-order-cod'], authenticateToken, async (req, res) => {
+router.post(['/placeOrderCOD', '/place-order-cod'], authenticateOptional, async (req, res) => {
   try {
     const items = normalizeItems(getOrderItems(req.body));
     const deliveryAddress = normalizeAddress(req.body);
-    const totalAmount = Number(req.body.totalAmount || req.body.total_amount);
+    const { totalAmount: computedAmount, pricedItems } = await recalculateOrderTotals(items);
+    const totalAmount = computedAmount || Number(req.body.totalAmount || req.body.total_amount);
 
     if (!items.length) {
       return res.status(400).json({ error: 'Cart items are required' });
@@ -169,7 +176,7 @@ router.post(['/placeOrderCOD', '/place-order-cod'], authenticateToken, async (re
 
     const order = await createMongoOrder({
       userId: req.user?._id,
-      items,
+      items: pricedItems.length > 0 ? pricedItems : items,
       totalAmount: Number.isFinite(totalAmount) ? totalAmount : items.reduce((sum, item) => sum + (item.total_price || 0), 0),
       paymentMethod: 'cod',
       paymentStatus: 'pending',

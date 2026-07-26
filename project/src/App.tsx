@@ -5,10 +5,10 @@ import { Toaster } from 'react-hot-toast';
 // Contexts
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 // Services
-import { sharedOrderService } from './services/sharedOrderService';
-
+// SharedOrderService is imported where needed
 // Components
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -38,7 +38,7 @@ const AppContent = (): JSX.Element => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg)' }}>
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading...</p>
@@ -48,7 +48,7 @@ const AppContent = (): JSX.Element => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg)' }}>
       <Header />
       <main>
         <Routes>
@@ -113,18 +113,17 @@ const AppContent = (): JSX.Element => {
 };
 
 function App() {
-  // Initialize shared order service for cross-website communication
-  useEffect(() => {
-    sharedOrderService.startListening();
-  }, []);
+  // sharedOrderService.startListening() was removed as we no longer sync via localStorage
 
   return (
-    <Router>
-      <AuthProvider>
-        <CartProvider>
-          <AppContent />
-        </CartProvider>
-      </AuthProvider>
+    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <ThemeProvider>
+        <AuthProvider>
+          <CartProvider>
+            <AppContent />
+          </CartProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </Router>
   );
 }

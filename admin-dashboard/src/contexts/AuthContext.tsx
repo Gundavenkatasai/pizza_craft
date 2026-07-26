@@ -43,8 +43,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
-      setLoading(true);
-      
       const res = await apiPost<{ token: string; user: any }>(`/api/auth/login`, { email, password });
       const u = res.user;
       console.log('✅ Login response:', { user: u, hasToken: !!res.token });
@@ -61,8 +59,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const errorMessage = error instanceof Error ? error.message : 'Login failed';
       toast.error(errorMessage);
       throw error;
-    } finally {
-      setLoading(false);
     }
   };
 
