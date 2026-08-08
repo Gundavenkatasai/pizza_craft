@@ -65,18 +65,7 @@ export const recalculateOrderTotals = async (items) => {
       if (pizzaDoc) {
         const sizeObj = (pizzaDoc.pizza_sizes || []).find(s => s.name.toLowerCase() === (it.size || '').toLowerCase());
         const multiplier = sizeObj?.price_multiplier || 1;
-        const ingredientCount = (pizzaDoc.ingredients || []).length || 0;
-        const sizeKey = (it.size || '').toLowerCase();
-        
-        // Only apply size Extra if it's a pizza
-        const isPizza = pizzaDoc.category?.toLowerCase() === 'pizzas' || pizzaDoc.category?.toLowerCase() === 'vegetarian' || pizzaDoc.category?.toLowerCase() === 'meat';
-        
-        const sizeExtra = isPizza ? (SIZE_EXTRA[sizeKey] ?? SIZE_EXTRA['medium']) : 0;
-        
-        let computedUnit = pizzaDoc.base_price * multiplier;
-        if (isPizza) {
-           computedUnit += (ingredientCount * INGREDIENT_MODIFIER) + sizeExtra;
-        }
+        const computedUnit = pizzaDoc.base_price * multiplier;
 
         const unit_price = Math.round(computedUnit * 100) / 100;
         const total_price = Math.round(unit_price * (it.quantity || 1) * 100) / 100;
@@ -91,7 +80,7 @@ export const recalculateOrderTotals = async (items) => {
   });
 
   const subtotal = pricedItems.reduce((s, it) => s + (it.total_price || 0), 0);
-  const tax = subtotal * TAX_RATE;
+  const tax = Math.round(subtotal * TAX_RATE * 100) / 100;
   const deliveryFee = calculateDeliveryFee(subtotal);
   const totalAmount = Math.round((subtotal + tax + deliveryFee) * 100) / 100;
 

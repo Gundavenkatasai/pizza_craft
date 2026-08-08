@@ -99,18 +99,13 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
   const addItem = async (pizza: Pizza, size: PizzaSize, quantity: number, customizations?: string[]) => {
     try {
-      const SIZE_EXTRA: Record<string, number> = {
-        small: 75, medium: 85, large: 95, xl: 100,
-      };
-      const INGREDIENT_MODIFIER = 10;
-      const sizeKey = (size.name || '').toLowerCase();
-      const sizeExtra = SIZE_EXTRA[sizeKey] ?? SIZE_EXTRA['medium'];
-      const computedUnitPrice = pizza.basePrice * size.priceMultiplier + (pizza.ingredients?.length || 0) * INGREDIENT_MODIFIER + sizeExtra;
+      const multiplier = size?.priceMultiplier || 1;
+      const computedUnitPrice = pizza.basePrice * multiplier;
       const unitPrice = Math.round(computedUnitPrice * 100) / 100;
       const totalPrice = Math.round(unitPrice * quantity * 100) / 100;
 
       const newItem: CartItem = {
-        id: `${pizza.id}-${size.id}-${Date.now()}`,
+        id: `${pizza.id}-${size?.id || 'std'}-${Date.now()}`,
         pizza,
         size,
         quantity,
@@ -122,7 +117,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       const existingIndex = currentItems.findIndex(
         item =>
           item.pizza.id === pizza.id &&
-          item.size.id === size.id &&
+          (item.size?.id || '') === (size?.id || '') &&
           JSON.stringify(item.customizations) === JSON.stringify(customizations || [])
       );
 
@@ -157,13 +152,10 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   const updateQuantity = async (id: string, quantity: number) => {
     if (quantity <= 0) { await removeItem(id); return; }
     try {
-      const SIZE_EXTRA: Record<string, number> = { small: 75, medium: 85, large: 95, xl: 100 };
-      const INGREDIENT_MODIFIER = 10;
       const updated = items.map(item => {
         if (item.id !== id) return item;
-        const sizeKey = (item.size.name || '').toLowerCase();
-        const sizeExtra = SIZE_EXTRA[sizeKey] ?? SIZE_EXTRA['medium'];
-        const unitPrice = Math.round((item.pizza.basePrice * item.size.priceMultiplier + (item.pizza.ingredients?.length || 0) * INGREDIENT_MODIFIER + sizeExtra) * 100) / 100;
+        const multiplier = item.size?.priceMultiplier || 1;
+        const unitPrice = Math.round((item.pizza.basePrice * multiplier) * 100) / 100;
         return { ...item, quantity, totalPrice: Math.round(unitPrice * quantity * 100) / 100 };
       });
       setItems(updated);
