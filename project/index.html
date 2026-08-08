@@ -10,8 +10,22 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Razorpay Payment Gateway Script -->
-    <!-- Add this in the head section if not already present -->
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+      // Gracefully handle optional third-party ad-blocker network logs (Lumberjack, Sentry, Sardine, PerimeterX)
+      window.addEventListener('error', function(e) {
+        if (e && e.filename && (
+          e.filename.includes('sentry') ||
+          e.filename.includes('lumberjack') ||
+          e.filename.includes('sardine') ||
+          e.filename.includes('px-cloud') ||
+          e.filename.includes('pxchk') ||
+          e.filename.includes('px-cdn')
+        )) {
+          e.preventDefault && e.preventDefault();
+        }
+      }, true);
+    </script>
   </head>
   <body>
     <div id="root"></div>

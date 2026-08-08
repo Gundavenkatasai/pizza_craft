@@ -42,8 +42,18 @@ app.use(helmet({
 app.use(cors({
   origin: '*',
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+  allowedHeaders: ["Content-Type", "Authorization", "x-rtb-fingerprint-id", "request-id", "X-Requested-With"],
+  exposedHeaders: ["x-rtb-fingerprint-id", "request-id", "Authorization", "Content-Type"]
 }));
+
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-rtb-fingerprint-id, request-id, X-Requested-With');
+  res.header('Access-Control-Expose-Headers', 'x-rtb-fingerprint-id, request-id, Authorization, Content-Type');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
 
 app.options('*', cors());
 
