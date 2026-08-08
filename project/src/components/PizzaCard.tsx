@@ -31,7 +31,7 @@ const PizzaCard: React.FC<PizzaCardProps> = ({ pizza, onViewDetails }) => {
   
   const availableSizes = (pizza.sizes && pizza.sizes.length > 0) ? pizza.sizes : null;
   const selectedSize = availableSizes 
-    ? (availableSizes.find(s => s.name === 'medium') || availableSizes[0])
+    ? (availableSizes.find(s => s.name === 'small') || availableSizes[0])
     : null;
     
   const sizeKey = (selectedSize?.name || '').toLowerCase();
