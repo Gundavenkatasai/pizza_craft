@@ -2,7 +2,6 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-import { Server } from 'socket.io';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -15,9 +14,13 @@ import adminRoutes from '../project/server/routes/admin.js';
 import inventoryRoutes from '../project/server/routes/inventory.js';
 import migrateRoutes from '../project/server/routes/migrate.js';
 import paymentRoutes from '../project/server/routes/payment.js';
+import categoryRoutes from '../project/server/routes/categories.js';
+import couponRoutes from '../project/server/routes/coupons.js';
+import bannerRoutes from '../project/server/routes/banners.js';
+import settingsRoutes from '../project/server/routes/settings.js';
+import analyticsRoutes from '../project/server/routes/analytics.js';
 
 // Import middleware
-import { authenticateToken } from '../project/server/middleware/auth.js';
 import { errorHandler } from '../project/server/middleware/errorHandler.js';
 
 // Import services
@@ -78,6 +81,11 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/migrate', migrateRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/coupons', couponRoutes);
+app.use('/api/banners', bannerRoutes);
+app.use('/api/settings', settingsRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
