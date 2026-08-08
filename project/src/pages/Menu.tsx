@@ -22,15 +22,22 @@ const Menu: React.FC = () => {
         const rawData = Array.isArray(response) ? response : (response as any).data || [];
         
         // Map backend properties (snake_case) to frontend properties (camelCase)
-        const mappedData = rawData.map((item: any) => ({
-          ...item,
-          id: item._id || item.id,
-          basePrice: item.base_price || item.basePrice || 0,
-          sizes: (item.pizza_sizes || item.sizes || []).map((s: any) => ({
-            ...s,
-            priceMultiplier: s.price_multiplier || s.priceMultiplier || 1
-          }))
-        }));
+        const mappedData = rawData.map((item: any) => {
+          const cat = (item.category || '').toLowerCase();
+          const isPizza = cat === 'pizzas' || cat === 'vegetarian' || cat === 'meat';
+          const sizes = (!isPizza || !item.pizza_sizes || item.pizza_sizes.length === 0)
+            ? [{ id: 'default', name: 'Regular', diameter: 'Standard', priceMultiplier: 1 }]
+            : (item.pizza_sizes || item.sizes || []).map((s: any) => ({
+                ...s,
+                priceMultiplier: s.price_multiplier || s.priceMultiplier || 1
+              }));
+          return {
+            ...item,
+            id: item._id || item.id,
+            basePrice: item.base_price || item.basePrice || 0,
+            sizes
+          };
+        });
         
         setPizzas(mappedData);
       } catch (error) {

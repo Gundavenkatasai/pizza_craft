@@ -15,12 +15,16 @@ const PizzaCard: React.FC<PizzaCardProps> = ({ pizza, onViewDetails }) => {
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.stopPropagation();
     
-    // For non-pizzas that don't have sizes, provide a default "regular" size
+    const cat = (pizza.category || '').toLowerCase();
+    const isPizza = cat === 'pizzas' || cat === 'vegetarian' || cat === 'meat';
+
     const availableSizes = (pizza.sizes && pizza.sizes.length > 0) 
       ? pizza.sizes 
-      : [{ id: 'default', name: 'regular' as any, diameter: '', priceMultiplier: 1 }];
+      : [{ id: 'default', name: 'Regular' as any, diameter: 'Standard', priceMultiplier: 1 }];
       
-    const selectedSize = availableSizes.find(size => size.name === 'medium') || availableSizes[0];
+    const selectedSize = isPizza
+      ? (availableSizes.find(size => (size.name || '').toLowerCase() === 'small') || availableSizes[0])
+      : availableSizes[0];
     
     if (selectedSize) {
       addItem(pizza, selectedSize, 1);
