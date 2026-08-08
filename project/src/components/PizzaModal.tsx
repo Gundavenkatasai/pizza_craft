@@ -12,7 +12,7 @@ interface PizzaModalProps {
 const PizzaModal: React.FC<PizzaModalProps> = ({ pizza, onClose }) => {
   const { addItem } = useCart();
   const [selectedSize, setSelectedSize] = useState<PizzaSize>(
-    pizza.sizes?.[1] || pizza.sizes?.[0] || { name: 'Regular', priceMultiplier: 1 }
+    pizza.sizes?.find(s => (s.name || '').toLowerCase() === 'small') || pizza.sizes?.[0] || { name: 'Regular', priceMultiplier: 1 }
   );
   const [quantity, setQuantity] = useState(1);
 

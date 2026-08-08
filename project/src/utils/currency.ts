@@ -4,9 +4,8 @@ export const formatCurrency = (amount: number): string => {
 };
 
 // Convert USD prices to INR (approximate conversion for demo)
-// In production, you'd use real-time exchange rates
 export const convertToINR = (usdAmount: number): number => {
-  const USD_TO_INR_RATE = 83; // Approximate rate
+  const USD_TO_INR_RATE = 83;
   return usdAmount * USD_TO_INR_RATE;
 };
 
@@ -31,27 +30,14 @@ export const formatIndianNumber = (num: number): string => {
   return num.toString();
 };
 
-// Pizza Price Calculation Constants
-export const SIZE_EXTRA: { [key: string]: number } = {
-  small: 75,
-  medium: 85,
-  large: 95,
-  xl: 100
-};
+export const INGREDIENT_MODIFIER = 0;
 
-export const INGREDIENT_MODIFIER = 10; // Extra cost per ingredient
-
-// Calculate pizza price based on base price, ingredients, and size
-export const calculatePizzaPrice = (basePrice: number, ingredientsCount: number, sizeName: string): number => {
-  const sizeKey = sizeName.toLowerCase();
-  const sizeCost = SIZE_EXTRA[sizeKey] ?? SIZE_EXTRA['regular'];
-  return basePrice + (ingredientsCount * INGREDIENT_MODIFIER) + sizeCost;
+// Calculate pizza price strictly based on base price set by admin
+export const calculatePizzaPrice = (basePrice: number, ingredientsCount: number = 0, sizeName: string = 'small'): number => {
+  return basePrice;
 };
 
 // Calculate delivery fee
 export const calculateDeliveryFee = (subtotal: number): number => {
-  // Free delivery for orders over ₹2500 (approx $30 equivalent, assuming INR pricing)
-  // Or simply 2.99 if in USD context. Our formatCurrency prepends ₹.
-  // Actually, since pricing is in INR now, let's say free delivery over ₹500, else ₹40 delivery fee
   return subtotal > 500 ? 0 : 40;
 };
