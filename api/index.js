@@ -61,7 +61,7 @@ if (process.env.NODE_ENV === 'production') {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Mock Socket.IO for serverless (real-time features won't work)
+// Mock Socket.IO for serverless
 const mockIo = {
   to: () => ({ emit: () => {} }),
   emit: () => {},
@@ -73,22 +73,27 @@ app.use((req, res, next) => {
   next();
 });
 
-// API Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/menu', menuRoutes);
-app.use('/api/orders', orderRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/inventory', inventoryRoutes);
-app.use('/api/migrate', migrateRoutes);
-app.use('/api/payment', paymentRoutes);
-app.use('/api/categories', categoryRoutes);
-app.use('/api/coupons', couponRoutes);
-app.use('/api/banners', bannerRoutes);
-app.use('/api/settings', settingsRoutes);
-app.use('/api/analytics', analyticsRoutes);
+// Resilient API Route Registration (supports both /api/* and /* serverless paths)
+const registerRoute = (routePath, handler) => {
+  app.use(`/api${routePath}`, handler);
+  app.use(routePath, handler);
+};
+
+registerRoute('/auth', authRoutes);
+registerRoute('/menu', menuRoutes);
+registerRoute('/orders', orderRoutes);
+registerRoute('/admin', adminRoutes);
+registerRoute('/inventory', inventoryRoutes);
+registerRoute('/migrate', migrateRoutes);
+registerRoute('/payment', paymentRoutes);
+registerRoute('/categories', categoryRoutes);
+registerRoute('/coupons', couponRoutes);
+registerRoute('/banners', bannerRoutes);
+registerRoute('/settings', settingsRoutes);
+registerRoute('/analytics', analyticsRoutes);
 
 // Health check
-app.get('/api/health', (req, res) => {
+app.get(['/api/health', '/health'], (req, res) => {
   res.json({ 
     status: 'OK', 
     timestamp: new Date().toISOString(),
