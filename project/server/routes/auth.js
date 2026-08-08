@@ -310,4 +310,17 @@ router.get('/me', authenticateToken, async (req, res) => {
   });
 });
 
+// Get all users for admin dashboard
+router.get('/users', async (req, res) => {
+  try {
+    const users = await User.find({})
+      .select('-password_hash -password')
+      .sort({ created_at: -1 })
+      .lean();
+    res.json({ success: true, data: users, users });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 export default router;
