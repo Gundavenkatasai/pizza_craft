@@ -47,7 +47,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const u = res.user;
       console.log('✅ Login response:', { user: u, hasToken: !!res.token });
       
-      if (!['super_admin', 'admin'].includes(u.role)) {
+      const allowedRoles = ['super_admin', 'admin', 'restaurant_admin', 'staff', 'manager'];
+      if (!allowedRoles.includes(u.role)) {
         throw new Error('Access denied. This portal is restricted to Admin & Super Admin accounts only.');
       }
       localStorage.setItem('adminToken', res.token);
