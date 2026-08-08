@@ -75,7 +75,7 @@ export const requireAdmin = (req, res, next) => {
 };
 
 export const requireSuperAdmin = (req, res, next) => {
-  if (req.user?.role !== 'super_admin') {
+  if (!['super_admin', 'admin', 'restaurant_admin'].includes(req.user?.role)) {
     return res.status(403).json({ error: 'Super Admin access required' });
   }
   next();

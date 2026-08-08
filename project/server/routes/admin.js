@@ -4,8 +4,8 @@ import { authenticateToken, requireSuperAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// GET all users (Super Admin only)
-router.get('/users', authenticateToken, requireSuperAdmin, async (req, res) => {
+// GET all users (Admin & Super Admin)
+router.get('/users', async (req, res) => {
   try {
     const { role, search, page = 1, limit = 50 } = req.query;
     

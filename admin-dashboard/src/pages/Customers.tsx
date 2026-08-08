@@ -10,20 +10,16 @@ export default function Customers() {
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
-        // Since there is no explicit customers endpoint yet, we could fetch from admin/users or just use placeholder logic
-        // We'll mock it for now or rely on a future endpoint
-        const res: any = await apiGet('/api/auth/users').catch(() => ({ data: [] }));
-        if (res && res.data) {
-          setCustomers(res.data);
-        } else if (Array.isArray(res)) {
-          setCustomers(res);
-        } else {
-          // Fallback dummy data if no endpoint
-          setCustomers([
-            { _id: '1', first_name: 'John', last_name: 'Doe', email: 'john@example.com', phone: '9876543210', role: 'customer', created_at: new Date().toISOString() },
-            { _id: '2', first_name: 'Jane', last_name: 'Smith', email: 'jane@example.com', phone: '9876543211', role: 'customer', created_at: new Date(Date.now() - 86400000).toISOString() }
-          ]);
+        let res: any = null;
+        try {
+          res = await apiGet('/api/admin/users');
+        } catch (_e1) {
+          try {
+            res = await apiGet('/api/auth/users');
+          } catch (_e2) {}
         }
+        const list = res?.users || res?.data || (Array.isArray(res) ? res : []);
+        setCustomers(list);
       } catch (e) {
         console.error(e);
       } finally {
