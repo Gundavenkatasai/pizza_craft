@@ -27,8 +27,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/login" replace />;
   }
 
-  // Enforce super_admin role
-  if (user.role !== 'super_admin') {
+  // Enforce super_admin or admin role
+  if (!['super_admin', 'admin'].includes(user.role)) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center text-white p-4 text-center" style={{ backgroundColor: 'var(--bg)' }}>
         <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mb-6">
