@@ -40,28 +40,31 @@ const Dashboard: React.FC = () => {
 
     const loadInitial = async () => {
       try {
+        let rawList: any[] = [];
         try {
-          const adminList: any[] = await apiGet('/api/orders/admin?limit=100');
-          const normalized = (adminList || []).map((o: any) => ({
-            id: (o._id || o.id)?.toString(),
-            status: o.status,
-            total: o.total_amount || o.total || 0,
-            created_at: o.created_at,
-            user_id: o.user_id?._id || o.user_id || ''
-          }));
-          updateOrders(normalized as any);
-        } catch (_auth) {
-          const dev: any = await apiGet('/api/orders/dev/all?limit=100');
-          const list = dev?.orders || dev || [];
-          const normalized = (list || []).map((o: any) => ({
-            id: (o._id || o.id)?.toString(),
-            status: o.status,
-            total: o.total_amount || o.total || 0,
-            created_at: o.created_at,
-            user_id: o.user_id?._id || o.user_id || ''
-          }));
-          updateOrders(normalized as any);
+          const res: any = await apiGet('/api/orders/admin?limit=100');
+          rawList = Array.isArray(res) ? res : res?.orders || res?.data || [];
+        } catch (_e1) {
+          try {
+            const dev: any = await apiGet('/api/orders/dev/all?limit=100');
+            rawList = dev?.orders || dev?.data || (Array.isArray(dev) ? dev : []);
+          } catch (_e2) {
+            try {
+              const my: any = await apiGet('/api/orders?limit=100');
+              rawList = Array.isArray(my) ? my : my?.orders || [];
+            } catch (_e3) {}
+          }
         }
+
+        const normalized = (rawList || []).map((o: any) => ({
+          id: (o._id || o.id)?.toString(),
+          status: o.status || 'pending',
+          total: Number(o.total_amount || o.total || o.totalAmount || 0),
+          created_at: o.created_at || o.createdAt || new Date().toISOString(),
+          user_id: o.user_id?._id || o.user_id || o.userId || ''
+        }));
+
+        updateOrders(normalized as any);
       } catch (e) {
         console.error('Dashboard load error:', (e as any)?.message || e);
         updateOrders([]);

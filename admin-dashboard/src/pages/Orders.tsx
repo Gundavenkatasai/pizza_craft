@@ -13,15 +13,22 @@ const Orders: React.FC = () => {
 
   const fetchOrders = async () => {
     try {
+      let list: any[] = [];
       try {
-        const list: any[] = await apiGet('/api/orders/admin?limit=50');
-        setOrders(list || []);
-      } catch (authErr: any) {
-        // Fallback to dev endpoint if auth fails
-        const devData: any = await apiGet('/api/orders/dev/all?limit=50');
-        const list = devData?.orders || [];
-        setOrders(list);
+        const res: any = await apiGet('/api/orders/admin?limit=100');
+        list = Array.isArray(res) ? res : res?.orders || res?.data || [];
+      } catch (_e1) {
+        try {
+          const dev: any = await apiGet('/api/orders/dev/all?limit=100');
+          list = dev?.orders || dev?.data || (Array.isArray(dev) ? dev : []);
+        } catch (_e2) {
+          try {
+            const my: any = await apiGet('/api/orders?limit=100');
+            list = Array.isArray(my) ? my : my?.orders || [];
+          } catch (_e3) {}
+        }
       }
+      setOrders(list || []);
     } catch (err) {
       console.error('❌ Failed to load orders:', err);
     } finally {
