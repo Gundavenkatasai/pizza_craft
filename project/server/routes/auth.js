@@ -32,16 +32,41 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'Password must be at least 6 characters' });
     }
 
-    // Check if user exists
-    const existingUser = await User.findOne({ email: email.toLowerCase() }).lean();
-    if (existingUser) {
-      console.log('User already exists:', email);
-      return res.status(400).json({ error: 'User already exists' });
-    }
-
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
     const verificationToken = uuidv4();
+
+    // Check if user exists - if so, update password and details seamlessly
+    let existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
+      console.log('User already exists, updating credentials for:', email);
+      existingUser.first_name = firstName || existingUser.first_name;
+      existingUser.last_name = lastName || existingUser.last_name;
+      existingUser.password_hash = hashedPassword;
+      if (phone) existingUser.phone = phone;
+      await existingUser.save();
+
+      const user = existingUser.toObject();
+      const token = jwt.sign(
+        { userId: user._id.toString(), email: user.email, role: user.role },
+        process.env.JWT_SECRET || 'fallback-secret-key',
+        { expiresIn: '7d' }
+      );
+
+      return res.status(200).json({
+        message: 'Account updated and logged in successfully',
+        token,
+        user: {
+          id: user._id.toString(),
+          firstName: user.first_name,
+          lastName: user.last_name,
+          email: user.email,
+          phone: user.phone,
+          role: user.role,
+          emailVerified: user.email_verified
+        }
+      });
+    }
 
     console.log('Creating new user...');
 
